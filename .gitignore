@@ -1,0 +1,37 @@
+# Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+*.iml
+.idea/
+out/
+
+# VS Code
+.vscode/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Arquivos de ambiente
+.env
+
+# Arquivos de build
+*.jar
+*.war
+*.ear
+
+# Testes
+/test-classes/
+
+# Outros
+node_modules/ 
