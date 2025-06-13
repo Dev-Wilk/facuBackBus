@@ -4,6 +4,7 @@ package com.facu.backbus.mapper;
 import com.facu.backbus.dto.UserDTO;
 import com.facu.backbus.model.User;
 
+
 public class UserMapper {
     public static UserDTO toDTO(User user) {
         if (user == null) {
