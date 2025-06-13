@@ -8,7 +8,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "eventt")
-public class Eventt {
+public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,7 +51,7 @@ public class Eventt {
     private Bus bus;
 
     // Constructors
-    public Eventt() {
+    public Event() {
     }
 
     // Getters and Setters

@@ -48,7 +48,7 @@ public class EventDTO {
 
     public EventDTO() {}
 
-    public EventDTO(com.facu.backbus.model.Eventt event) {
+    public EventDTO(com.facu.backbus.model.Event event) {
         this.id = event.getId();
         this.responsibleName = event.getResponsibleName();
         this.contactPhone = event.getContactPhone();
@@ -84,8 +84,8 @@ public class EventDTO {
     public BigDecimal getEventValue() { return eventValue; }
     public void setEventValue(BigDecimal eventValue) { this.eventValue = eventValue; }
     
-    public com.facu.backbus.model.Eventt toEntity() {
-        com.facu.backbus.model.Eventt event = new com.facu.backbus.model.Eventt();
+    public com.facu.backbus.model.Event toEntity() {
+        com.facu.backbus.model.Event event = new com.facu.backbus.model.Event();
         event.setId(this.id);
         event.setResponsibleName(this.responsibleName);
         event.setContactPhone(this.contactPhone);
