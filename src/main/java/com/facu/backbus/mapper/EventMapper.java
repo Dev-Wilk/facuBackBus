@@ -8,6 +8,18 @@ public class EventMapper {
         return new EventDTO(event);
     }
     public static Event toEntity(EventDTO dto) {
-        return dto.toEntity();
+        Event event = new Event();
+        event.setId(dto.getId());
+        event.setResponsibleName(dto.getResponsibleName());
+        event.setContactPhone(dto.getContactPhone());
+        event.setEventLocation(dto.getEventLocation());
+        event.setEventDepartureDate(dto.getEventDepartureDate());
+        event.setEventReturnDate(dto.getEventReturnDate());
+        event.setDepartureTime(dto.getDepartureTime());
+        event.setReturnTime(dto.getReturnTime());
+        event.setNumberOfPassengers(dto.getNumberOfPassengers());
+        event.setEventValue(dto.getEventValue());
+        // Note: employee, driver e bus precisam ser definidos separadamente
+        return event;
     }
 } 

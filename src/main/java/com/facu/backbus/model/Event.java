@@ -4,10 +4,14 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.facu.backbus.validation.ValidDateRange;
+
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 @Table(name = "eventt")
+@ValidDateRange(startDate = "eventDepartureDate", endDate = "eventReturnDate", message = "A data de partida deve ser anterior à data de retorno")
 public class Event {
 
     @Id
@@ -18,18 +22,27 @@ public class Event {
     private String responsibleName;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^\\d{12}$", message = "O número de telefone deve conter exatamente 12 dígitos.")
+    @Size(min = 12, max = 12, message = "O número de telefone deve ter exatamente 12 dígitos.")
     private String contactPhone;
 
     @Column(nullable = false)
     private String eventLocation;
 
     @Column(nullable = false)
-    private LocalDate eventDate;
+    @NotNull(message = "A data de partida é obrigatória")
+    private LocalDate eventDepartureDate;
 
     @Column(nullable = false)
+    @NotNull(message = "O horário de partida é obrigatório")
     private LocalTime departureTime;
 
     @Column(nullable = false)
+    @NotNull(message = "A data de retorno é obrigatória")
+    private LocalDate eventReturnDate;
+
+    @Column(nullable = false)
+    @NotNull(message = "O horário de retorno é obrigatório")
     private LocalTime returnTime;
 
     @Column(nullable = false)
@@ -87,12 +100,20 @@ public class Event {
         this.eventLocation = eventLocation;
     }
 
-    public LocalDate getEventDate() {
-        return eventDate;
+    public LocalDate getEventDepartureDate() {
+        return eventDepartureDate;
     }
 
-    public void setEventDate(LocalDate eventDate) {
-        this.eventDate = eventDate;
+    public void setEventDepartureDate(LocalDate eventDepartureDate) {
+        this.eventDepartureDate = eventDepartureDate;
+    }
+
+    public LocalDate getEventReturnDate() {
+        return eventReturnDate;
+    }
+
+    public void setEventReturnDate(LocalDate eventReturnDate) {
+        this.eventReturnDate = eventReturnDate;
     }
 
     public LocalTime getDepartureTime() {

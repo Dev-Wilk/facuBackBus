@@ -44,7 +44,10 @@ public class EventController {
         this.busService = busService;
     }
 
-
+    /**
+     * Lista todos os eventos cadastrados.
+     * @return Lista de DTOs de eventos
+     */
     @GetMapping
     public List<EventDTO> getAllEvents() {
         return eventService.findAll().stream()
@@ -52,7 +55,11 @@ public class EventController {
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * Busca um evento pelo ID.
+     * @param id ID do evento
+     * @return DTO do evento encontrado ou 404 se não encontrado
+     */
     @GetMapping("/{id}")
     public ResponseEntity<EventDTO> getEventById(@PathVariable Long id) {
         return eventService.findById(id)
@@ -61,17 +68,24 @@ public class EventController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Cria um novo evento.
+     * @param eventDTO DTO com os dados do evento a ser criado
+     * @return DTO do evento criado
+     * @throws IllegalArgumentException se o ID do funcionário não for fornecido
+     */
     @PostMapping
     public ResponseEntity<EventDTO> createEvent(@Valid @RequestBody EventDTO eventDTO) {
         try {
             logger.info("Iniciando criação de evento: {}", eventDTO);
             
-
+            // Cria o evento com os dados básicos
             Event event = new Event();
             event.setResponsibleName(eventDTO.getResponsibleName());
             event.setContactPhone(eventDTO.getContactPhone());
             event.setEventLocation(eventDTO.getEventLocation());
-            event.setEventDate(eventDTO.getEventDate());
+            event.setEventDepartureDate(eventDTO.getEventDepartureDate());
+            event.setEventReturnDate(eventDTO.getEventReturnDate());
             event.setDepartureTime(eventDTO.getDepartureTime());
             event.setReturnTime(eventDTO.getReturnTime());
             event.setNumberOfPassengers(eventDTO.getNumberOfPassengers());
@@ -79,28 +93,38 @@ public class EventController {
             
             logger.info("Dados básicos do evento configurados");
             
-
+            // Define o funcionário responsável
             logger.info("Buscando funcionário com ID: {}", eventDTO.getEmployeeId());
-            User employee = userService.findById(eventDTO.getEmployeeId())
-                .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado com o ID: " + eventDTO.getEmployeeId()));
+            User employee = userService.findById(eventDTO.getEmployeeId());
+            if (employee == null) {
+                throw new IllegalArgumentException("Funcionário não encontrado com o ID: " + eventDTO.getEmployeeId());
+            }
             event.setEmployee(employee);
             logger.info("Funcionário associado: {}", employee.getId());
             
-
+            // Busca e associa o motorista
             logger.info("Buscando motorista com ID: {}", eventDTO.getDriverId());
             Driver driver = driverService.findById(eventDTO.getDriverId())
                 .orElseThrow(() -> new IllegalArgumentException("Motorista não encontrado com o ID: " + eventDTO.getDriverId()));
+            if (driver.getStatus() != com.facu.backbus.model.enums.DriverStatus.AVAILABLE) {
+                logger.error("Motorista com ID {} não está disponível.", driver.getId());
+                return ResponseEntity.badRequest().body(null);
+            }
             event.setDriver(driver);
             logger.info("Motorista associado: {}", driver.getId());
             
-
+            // Busca e associa o ônibus
             logger.info("Buscando ônibus com ID: {}", eventDTO.getBusId());
             Bus bus = busService.findById(eventDTO.getBusId())
                 .orElseThrow(() -> new IllegalArgumentException("Ônibus não encontrado com o ID: " + eventDTO.getBusId()));
+            if (bus.getStatus() != com.facu.backbus.model.enums.BusStatus.AVAILABLE) {
+                logger.error("Ônibus com ID {} não está disponível.", bus.getId());
+                return ResponseEntity.badRequest().body(null);
+            }
             event.setBus(bus);
             logger.info("Ônibus associado: {}", bus.getId());
             
-
+            // Salva o evento
             logger.info("Salvando evento...");
             Event savedEvent = eventService.save(event);
             logger.info("Evento salvo com sucesso. ID: {}", savedEvent.getId());
@@ -116,42 +140,58 @@ public class EventController {
         }
     }
 
-
+    /**
+     * Atualiza um evento existente.
+     * @param id ID do evento a ser atualizado
+     * @param eventDTO DTO com os novos dados do evento
+     * @return DTO do evento atualizado ou 404 se não encontrado
+     */
     @PutMapping("/{id}")
     public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id, @Valid @RequestBody EventDTO eventDTO) {
         try {
-
+            // Busca o evento existente
             Event existingEvent = eventService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Evento não encontrado com o ID: " + id));
             
-
+            // Atualiza os campos básicos
             existingEvent.setResponsibleName(eventDTO.getResponsibleName());
             existingEvent.setContactPhone(eventDTO.getContactPhone());
             existingEvent.setEventLocation(eventDTO.getEventLocation());
-            existingEvent.setEventDate(eventDTO.getEventDate());
+            existingEvent.setEventDepartureDate(eventDTO.getEventDepartureDate());
+            existingEvent.setEventReturnDate(eventDTO.getEventReturnDate());
             existingEvent.setDepartureTime(eventDTO.getDepartureTime());
             existingEvent.setReturnTime(eventDTO.getReturnTime());
             existingEvent.setNumberOfPassengers(eventDTO.getNumberOfPassengers());
             existingEvent.setEventValue(eventDTO.getEventValue());
             
-
+            // Atualiza o funcionário responsável, se necessário
             if (!existingEvent.getEmployee().getId().equals(eventDTO.getEmployeeId())) {
-                User employee = userService.findById(eventDTO.getEmployeeId())
-                    .orElseThrow(() -> new IllegalArgumentException("Funcionário não encontrado com o ID: " + eventDTO.getEmployeeId()));
-                existingEvent.setEmployee(employee);
+                User newEmployee = userService.findById(eventDTO.getEmployeeId());
+                if (newEmployee == null) {
+                    throw new IllegalArgumentException("Funcionário não encontrado com o ID: " + eventDTO.getEmployeeId());
+                }
+                existingEvent.setEmployee(newEmployee);
             }
             
-
+            // Busca e associa o novo motorista
             Driver driver = driverService.findById(eventDTO.getDriverId())
                 .orElseThrow(() -> new IllegalArgumentException("Motorista não encontrado com o ID: " + eventDTO.getDriverId()));
+            if (driver.getStatus() != com.facu.backbus.model.enums.DriverStatus.AVAILABLE) {
+                logger.error("Motorista com ID {} não está disponível.", driver.getId());
+                return ResponseEntity.badRequest().build();
+            }
             existingEvent.setDriver(driver);
             
-
+            // Busca e associa o novo ônibus
             Bus bus = busService.findById(eventDTO.getBusId())
                 .orElseThrow(() -> new IllegalArgumentException("Ônibus não encontrado com o ID: " + eventDTO.getBusId()));
+            if (bus.getStatus() != com.facu.backbus.model.enums.BusStatus.AVAILABLE) {
+                logger.error("Ônibus com ID {} não está disponível.", bus.getId());
+                return ResponseEntity.badRequest().build();
+            }
             existingEvent.setBus(bus);
-
-
+            
+            // Salva as alterações
             Event updatedEvent = eventService.save(existingEvent);
             return ResponseEntity.ok(EventMapper.toDTO(updatedEvent));
             
@@ -164,7 +204,11 @@ public class EventController {
         }
     }
 
-
+    /**
+     * Remove um evento pelo ID.
+     * @param id ID do evento a ser removido
+     * @return Resposta vazia com status 204 (No Content) ou 404 se não encontrado
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         return eventService.findById(id)
