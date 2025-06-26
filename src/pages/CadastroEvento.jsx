@@ -1,0 +1,334 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/Api';
+import { statusMotorista } from '../utils/statusLabels';
+import '../styles/CadastroEvento.css';
+
+export default function CadastroEvento() {
+    const navigate = useNavigate();
+
+    const [form, setForm] = useState({
+        nomeResponsavel: '',
+        telefoneResponsavel: '',
+        localEvento: '',
+        dataEvento: '',
+        dataRetorno: '',
+        horarioIda: '',
+        horarioVolta: '',
+        quantidadePassageiros: '',
+        funcionarioId: '',
+        valorEvento: '',
+        motoristaId: '',
+        onibusIds: '',
+    });
+
+    const [telefoneErro, setTelefoneErro] = useState('');
+    const [funcionariosDisponiveis, setFuncionariosDisponiveis] = useState([]);
+    const [motoristasDisponiveis, setMotoristasDisponiveis] = useState([]);
+    const [onibusDisponiveis, setOnibusDisponiveis] = useState([]);
+
+    useEffect(() => {
+        async function fetchDados() {
+            try {
+                const [funcionariosRes, motoristasRes, onibusRes] = await Promise.all([
+                    api.get('/users'),
+                    api.get('/drivers'),
+                    api.get('/buses'),
+                ]);
+                setFuncionariosDisponiveis(funcionariosRes.data);
+                setMotoristasDisponiveis(motoristasRes.data);
+                setOnibusDisponiveis(onibusRes.data);
+            } catch (err) {
+                console.error('Erro ao buscar dados:', err);
+                alert('Erro ao carregar dados do backend');
+            }
+        }
+        fetchDados();
+    }, []);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        if (name === 'telefoneResponsavel') {
+            const somenteNumeros = value.replace(/\D/g, '');
+            if (somenteNumeros.length > 12) return;
+            setForm(prev => ({ ...prev, [name]: somenteNumeros }));
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }));
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        setTelefoneErro('');
+        let erroEncontrado = false;
+
+        const today = new Date();
+        const dataEvento = new Date(form.dataEvento + "T00:00");
+        const dataRetorno = new Date(form.dataRetorno + "T00:00");
+
+        if (dataEvento < today.setHours(0, 0, 0, 0)) {
+            alert(`A data do evento não pode ser anterior à data atual.`);
+            return;
+        }
+
+        if (dataRetorno < dataEvento) {
+            alert(`A data de retorno não pode ser anterior à data do evento.`);
+            return;
+        }
+
+        if (form.telefoneResponsavel.length !== 12) {
+            setTelefoneErro('O telefone do responsável deve conter exatamente 12 dígitos.');
+            erroEncontrado = true;
+        }
+
+        const onibusSelecionado = onibusDisponiveis.find(
+            (o) => o.id.toString() === form.onibusIds.toString()
+        );
+
+        if (
+            onibusSelecionado &&
+            Number(form.quantidadePassageiros) > Number(onibusSelecionado.maxCapacity)
+        ) {
+            alert(
+                `A quantidade de passageiros (${form.quantidadePassageiros}) excede a capacidade do ônibus selecionado (${onibusSelecionado.maxCapacity} lugares).`
+            );
+            return;
+        }
+
+        if (!form.funcionarioId) {
+            alert('Selecione o funcionário responsável pelo evento.');
+            return;
+        }
+
+        if (erroEncontrado) return;
+
+        try {
+            const payload = {
+                responsibleName: form.nomeResponsavel,
+                contactPhone: form.telefoneResponsavel,
+                eventLocation: form.localEvento,
+                eventDepartureDate: form.dataEvento,
+                eventReturnDate: form.dataRetorno,
+                departureTime: form.horarioIda,
+                returnTime: form.horarioVolta,
+                numberOfPassengers: Number(form.quantidadePassageiros),
+                employeeId: Number(form.funcionarioId),
+                eventValue: Number(form.valorEvento),
+                driverId: Number(form.motoristaId),
+                busId: Number(form.onibusIds),
+            };
+
+            await api.post('/events', payload);
+            alert('Evento cadastrado com sucesso!');
+            navigate('/dashboard');
+        } catch (error) {
+            console.error('Erro ao cadastrar evento:', error.response?.data || error.message);
+            alert('Erro ao cadastrar evento');
+        }
+    };
+
+    const motoristasDisponiveisFiltrados = motoristasDisponiveis.filter(m => m.status === 'AVAILABLE');
+    const onibusDisponiveisFiltrados = onibusDisponiveis.filter(o => o.status === 'AVAILABLE');
+
+    return (
+        <div className='ContainerCadastro'>
+            <h2>Cadastrar Evento</h2>
+            <form className='FormCadastro' id='form-evento' onSubmit={handleSubmit}>
+                <div className="GridFormulario">
+                    <div className="ColunaFormulario">
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="nomeResponsavel">Nome:</label>
+                            <input
+                                id='nomeResponsavel'
+                                className='InputCadastroEvento'
+                                name='nomeResponsavel'
+                                value={form.nomeResponsavel}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="telefoneResponsavel">Telefone:</label>
+                            <input
+                                id='telefoneResponsavel'
+                                className='InputCadastroEvento'
+                                name='telefoneResponsavel'
+                                type='text'
+                                inputMode='numeric'
+                                maxLength="12"
+                                value={form.telefoneResponsavel}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="localEvento">Local:</label>
+                            <input
+                                id='localEvento'
+                                className='InputCadastroEvento'
+                                name='localEvento'
+                                value={form.localEvento}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="dataEvento">Data:</label>
+                            <input
+                                id='dataEvento'
+                                className='InputCadastroEvento'
+                                name='dataEvento'
+                                type='date'
+                                value={form.dataEvento}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="dataRetorno">Data de Retorno:</label>
+                            <input
+                                id='dataRetorno'
+                                className='InputCadastroEvento'
+                                name='dataRetorno'
+                                type='date'
+                                value={form.dataRetorno}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="horarioIda">Horário Ida:</label>
+                            <input
+                                id='horarioIda'
+                                className='InputCadastroEvento'
+                                name='horarioIda'
+                                type='time'
+                                value={form.horarioIda}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="horarioVolta">Horário Volta:</label>
+                            <input
+                                id='horarioVolta'
+                                className='InputCadastroEvento'
+                                name='horarioVolta'
+                                type='time'
+                                value={form.horarioVolta}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    <div className="ColunaFormulario">
+                        <div className="LinhaFormulario">
+                            <label htmlFor="quantidadePassageiros">Passageiros:</label>
+                            <input
+                                id='quantidadePassageiros'
+                                className="InputCadastroEvento"
+                                name='quantidadePassageiros'
+                                type='number'
+                                min="1"
+                                value={form.quantidadePassageiros}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="funcionarioId">Funcionário:</label>
+                            <select
+                                id='funcionarioId'
+                                className='SelectCadastroEvento'
+                                name='funcionarioId'
+                                value={form.funcionarioId}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value=''>Selecione</option>
+                                {funcionariosDisponiveis.map(f => (
+                                    <option key={f.id} value={f.id}>
+                                        {f.fullName || f.nome}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="motoristaId">Motorista:</label>
+                            <select
+                                id='motoristaId'
+                                className='SelectCadastroEvento'
+                                name='motoristaId'
+                                value={form.motoristaId}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value=''>Selecione</option>
+                                {motoristasDisponiveisFiltrados.map(m => (
+                                    <option key={m.id} value={m.id}>
+                                        {m.fullName || m.nome} ({statusMotorista[m.status]})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="onibusIds">Ônibus:</label>
+                            <select
+                                id='onibusIds'
+                                className='SelectCadastroEvento'
+                                name='onibusIds'
+                                value={form.onibusIds}
+                                onChange={handleChange}
+                                required
+                            >
+                                <option value=''>Selecione</option>
+                                {onibusDisponiveisFiltrados.map(o => (
+                                    <option key={o.id} value={o.id}>
+                                        {o.plate || o.placa} (Cap.: {o.maxCapacity || o.capacidade})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="LinhaFormulario">
+                            <label htmlFor="valorEvento">Valor (R$):</label>
+                            <input
+                                id='valorEvento'
+                                className='InputCadastroEvento'
+                                name='valorEvento'
+                                type='number'
+                                value={form.valorEvento}
+                                onChange={handleChange}
+                                required
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <button className='ButtonCadastro' type='submit' form='form-evento'>
+                        Salvar
+                    </button>
+                    {telefoneErro && (
+                        <span style={{ color: '#CCC', fontSize: '0.9rem', marginTop: '2rem' }}>
+                            {telefoneErro}
+                        </span>
+                    )}
+                </div>
+            </form>
+        </div>
+    );
+}
