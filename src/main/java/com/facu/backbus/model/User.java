@@ -1,6 +1,7 @@
 package com.facu.backbus.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import com.facu.backbus.model.enums.UserType;
 
 @Entity
@@ -18,6 +19,7 @@ public class User {
     private String login;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$", message = "A senha deve conter pelo menos um número e um caractere especial")
     private String password;
 
     @Enumerated(EnumType.STRING)

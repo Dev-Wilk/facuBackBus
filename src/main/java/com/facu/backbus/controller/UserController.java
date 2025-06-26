@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
+/**
+ * Controlador responsável por gerenciar operações relacionadas a usuários.
+ * Permite listar, buscar por ID, criar, atualizar e deletar usuários.
+ * Apenas usuários do tipo GERENTE podem criar ou atualizar outros usuários como GERENTE.
+ */
 @RestController
 @RequestMapping("/users")
 @CrossOrigin(origins = "*")
@@ -24,7 +28,10 @@ public class UserController {
         this.userService = userService;
     }
 
-
+    /**
+     * Lista todos os usuários cadastrados.
+     * @return Lista de DTOs de usuários
+     */
     @GetMapping
     public List<UserDTO> getAllUsers() {
         return userService.findAll().stream()
@@ -32,16 +39,26 @@ public class UserController {
                 .collect(Collectors.toList());
     }
 
-
+    /**
+     * Busca um usuário pelo ID.
+     * @param id ID do usuário
+     * @return DTO do usuário encontrado ou 404 se não encontrado
+     */
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return userService.findById(id)
-                .map(UserMapper::toDTO)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        User user = userService.findById(id);
+        if (user != null) {
+            return ResponseEntity.ok(UserMapper.toDTO(user));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-
+    /**
+     * Cria um novo usuário.
+     * @param userDTO DTO com os dados do usuário a ser criado
+     * @return DTO do usuário criado
+     */
     @PostMapping
     public UserDTO createUser(@RequestBody UserDTO userDTO) {
         User user = new User();
@@ -54,28 +71,46 @@ public class UserController {
     }
 
 
+    /**
+     * Atualiza um usuário existente.
+     * @param id ID do usuário a ser atualizado
+     * @param userDTO DTO com os novos dados do usuário
+     * @return DTO do usuário atualizado ou 404 se não encontrado
+     */
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return userService.findById(id)
-                .map(existingUser -> {
-                    existingUser.setFullName(userDTO.getFullName());
-                    existingUser.setLogin(userDTO.getLogin());
-                    existingUser.setPassword(userDTO.getPassword());
-                    existingUser.setUserType(userDTO.getUserType());
-                    User updated = userService.save(existingUser);
-                    return ResponseEntity.ok(UserMapper.toDTO(updated));
-                })
-                .orElse(ResponseEntity.notFound().build());
+        User existingUser = userService.findById(id);
+        if (existingUser != null) {
+            existingUser.setFullName(userDTO.getFullName());
+            existingUser.setLogin(userDTO.getLogin());
+
+            // Apenas atualiza a senha se uma nova for fornecida
+            if (userDTO.getPassword() != null && !userDTO.getPassword().trim().isEmpty()) {
+                existingUser.setPassword(userDTO.getPassword());
+            }
+
+            User updated = userService.save(existingUser);
+            return ResponseEntity.ok(UserMapper.toDTO(updated));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
-
+    /**
+     * Remove um usuário pelo ID.
+     * @param id ID do usuário a ser removido
+     * @return Resposta vazia com status 204 (No Content) ou 404 se não encontrado
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        return userService.findById(id)
-                .map(user -> {
-                    userService.deleteById(id);
-                    return ResponseEntity.noContent().<Void>build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+        User user = userService.findById(id);
+        if (user != null) {
+            userService.deleteById(id);
+            return ResponseEntity.noContent().<Void>build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
+    
 }
