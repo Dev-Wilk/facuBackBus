@@ -1,11 +1,15 @@
 package com.facu.backbus.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+
 import com.facu.backbus.model.enums.DriverStatus;
+
 
 @Entity
 @Table(name = "driver")
 public class Driver {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +22,8 @@ public class Driver {
     private String identificationNumber;
 
     @Column(nullable = false)
+    @Pattern(regexp = "^\\d{12}$", message = "O número de contato deve conter exatamente 12 dígitos.")
+    @Size(min = 12, max = 12, message = "O número de contato deve ter exatamente 12 dígitos.")
     private String contact;
 
     @Enumerated(EnumType.STRING)
@@ -25,8 +31,7 @@ public class Driver {
     private DriverStatus status;
 
     // Constructors
-    public Driver() {
-    }
+    public Driver() {}
 
     public Driver(String fullName, String identificationNumber, String contact, DriverStatus status) {
         this.fullName = fullName;
@@ -36,43 +41,24 @@ public class Driver {
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
 
-    public String getFullName() {
-        return fullName;
-    }
+    public String getIdentificationNumber() { return identificationNumber; }
+    public void setIdentificationNumber(String identificationNumber) { this.identificationNumber = identificationNumber; }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+    
+    // Relacionamento bidirecional opcional - descomente se necessário
+    // @OneToMany(mappedBy = "driver")
+    // private List<Event> events = new ArrayList<>();
 
-    public String getIdentificationNumber() {
-        return identificationNumber;
-    }
-
-    public void setIdentificationNumber(String identificationNumber) {
-        this.identificationNumber = identificationNumber;
-    }
-
-    public String getContact() {
-        return contact;
-    }
-
-    public void setContact(String contact) {
-        this.contact = contact;
-    }
-
-    public DriverStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DriverStatus status) {
-        this.status = status;
-    }
+    public DriverStatus getStatus() { return status; }
+    public void setStatus(DriverStatus status) { this.status = status; }
 }
+
+

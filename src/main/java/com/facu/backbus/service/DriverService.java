@@ -10,6 +10,9 @@ import java.util.Optional;
 
 @Service
 public class DriverService {
+    public List<Driver> findAllByStatus(com.facu.backbus.model.enums.DriverStatus status) {
+        return driverRepository.findAllByStatus(status);
+    }
     private final DriverRepository driverRepository;
 
     @Autowired

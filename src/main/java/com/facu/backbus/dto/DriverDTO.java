@@ -9,8 +9,7 @@ public class DriverDTO {
     private String contact;
     private DriverStatus status;
 
-    public DriverDTO() {
-    }
+    public DriverDTO() {}
 
     public DriverDTO(Long id, String fullName, String identificationNumber, String contact, DriverStatus status) {
         this.id = id;
@@ -38,43 +37,14 @@ public class DriverDTO {
         return driver;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
-    public String getIdentificationNumber() {
-        return identificationNumber;
-    }
-
-    public void setIdentificationNumber(String identificationNumber) {
-        this.identificationNumber = identificationNumber;
-    }
-
-    public String getContact() {
-        return contact;
-    }
-
-    public void setContact(String contact) {
-        this.contact = contact;
-    }
-
-    public DriverStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(DriverStatus status) {
-        this.status = status;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public String getIdentificationNumber() { return identificationNumber; }
+    public void setIdentificationNumber(String identificationNumber) { this.identificationNumber = identificationNumber; }
+    public String getContact() { return contact; }
+    public void setContact(String contact) { this.contact = contact; }
+    public DriverStatus getStatus() { return status; }
+    public void setStatus(DriverStatus status) { this.status = status; }
 }
