@@ -8,8 +8,7 @@ public class BusDTO {
     private Integer maxCapacity;
     private BusStatus status;
 
-    public BusDTO() {
-    }
+    public BusDTO() {}
 
     public BusDTO(Long id, String plate, Integer maxCapacity, BusStatus status) {
         this.id = id;
@@ -34,35 +33,12 @@ public class BusDTO {
         return bus;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPlate() {
-        return plate;
-    }
-
-    public void setPlate(String plate) {
-        this.plate = plate;
-    }
-
-    public Integer getMaxCapacity() {
-        return maxCapacity;
-    }
-
-    public void setMaxCapacity(Integer maxCapacity) {
-        this.maxCapacity = maxCapacity;
-    }
-
-    public BusStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(BusStatus status) {
-        this.status = status;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getPlate() { return plate; }
+    public void setPlate(String plate) { this.plate = plate; }
+    public Integer getMaxCapacity() { return maxCapacity; }
+    public void setMaxCapacity(Integer maxCapacity) { this.maxCapacity = maxCapacity; }
+    public BusStatus getStatus() { return status; }
+    public void setStatus(BusStatus status) { this.status = status; }
 }

@@ -11,6 +11,9 @@ import java.util.Optional;
 
 @Service
 public class BusService {
+    public List<Bus> findAllByStatus(com.facu.backbus.model.enums.BusStatus status) {
+        return busRepository.findAllByStatus(status);
+    }
     private final BusRepository busRepository;
 
     @Autowired
