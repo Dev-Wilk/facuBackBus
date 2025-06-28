@@ -141,6 +141,7 @@ export default function EditarEvento() {
 
         try {
             const payload = {
+                id: Number(id),
                 responsibleName: form.nomeResponsavel,
                 contactPhone: form.telefoneResponsavel,
                 eventLocation: form.localEvento,
