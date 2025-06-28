@@ -149,6 +149,8 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<EventDTO> updateEvent(@PathVariable Long id, @Valid @RequestBody EventDTO eventDTO) {
         try {
+            eventDTO.setId(id);
+            
             // Busca o evento existente
             Event existingEvent = eventService.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Evento não encontrado com o ID: " + id));
