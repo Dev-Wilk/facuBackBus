@@ -19,7 +19,8 @@ public class User {
     private String login;
 
     @Column(nullable = false)
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$", message = "A senha deve conter pelo menos um número e um caractere especial")
+    // retirar o @Pattern e adicionar função de validação
+    //@Pattern(regexp = "^(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>]).*$", message = "A senha deve conter pelo menos um número e um caractere especial")
     private String password;
 
     @Enumerated(EnumType.STRING)
