@@ -22,8 +22,8 @@ public class Driver {
     private String identificationNumber;
 
     @Column(nullable = false)
-    @Pattern(regexp = "^\\d{12}$", message = "O número de contato deve conter exatamente 12 dígitos.")
-    @Size(min = 12, max = 12, message = "O número de contato deve ter exatamente 12 dígitos.")
+    @Pattern(regexp = "^\\d{10,11}$", message = "O número de contato deve conter entre 10 e 11 dígitos.")
+    @Size(min = 10, max = 11, message = "O número de contato deve ter entre 10 e 11 dígitos.")
     private String contact;
 
     @Enumerated(EnumType.STRING)

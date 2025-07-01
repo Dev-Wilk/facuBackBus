@@ -166,7 +166,7 @@ public class DataInitializer {
                         Driver driver1 = new Driver();
                         driver1.setFullName("José da Silva");
                         driver1.setIdentificationNumber("123456789");
-                        driver1.setContact("123456789012");
+                        driver1.setContact("12345678901");
                         driver1.setStatus(DriverStatus.AVAILABLE);
                         
                         logger.info("Salvando motorista: {}", driver1.getFullName());
@@ -176,7 +176,7 @@ public class DataInitializer {
                         Driver driver2 = new Driver();
                         driver2.setFullName("Maria Oliveira");
                         driver2.setIdentificationNumber("987654321");
-                        driver2.setContact("210987654321");
+                        driver2.setContact("21098765432");
                         driver2.setStatus(DriverStatus.AVAILABLE);
                         
                         logger.info("Salvando motorista: {}", driver2.getFullName());
