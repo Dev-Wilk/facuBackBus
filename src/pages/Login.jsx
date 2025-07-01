@@ -45,7 +45,7 @@ function Login() {
       <div className='ContainerLogin'>
         <form className='FormLogin' onSubmit={handleLogin}>
           <div className='DivLogo'>
-            <img className='LogoLogin' src="#" alt="logo" />
+            <h1 className='loginText' >Login</h1>
           </div>
 
           <div className='DivInpt'>

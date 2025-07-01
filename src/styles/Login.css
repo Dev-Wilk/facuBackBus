@@ -26,6 +26,9 @@
     color: #FFF;
 }
 
+.loginText {
+    font-size: 1.5rem;
+}
 .LogoLogin {
     width: 10rem;
 }
