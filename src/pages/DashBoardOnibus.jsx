@@ -7,6 +7,21 @@ import { statusOnibus } from '../utils/statusLabels';
 export default function DashBoardOnibus() {
   const [onibus, setOnibus] = useState([]);
   const [tipoUsuario, setTipoUsuario] = useState(null);
+  
+  // Função para formatar a placa com hífen
+  const formatarPlaca = (placa) => {
+    if (!placa) return '';
+    
+    // Remove qualquer hífen existente
+    const placaSemHifen = placa.replace(/-/g, '');
+    
+    // Se a placa tem pelo menos 3 caracteres, insere o hífen
+    if (placaSemHifen.length >= 3) {
+      return placaSemHifen.substring(0, 3) + '-' + placaSemHifen.substring(3);
+    }
+    
+    return placaSemHifen;
+  };
 
   useEffect(() => {
     setTipoUsuario(localStorage.getItem('tipoUsuario'));
@@ -51,7 +66,7 @@ export default function DashBoardOnibus() {
           <tbody>
             {onibus.map((o) => (
               <tr key={o.id}>
-                <td>{o.plate}</td>
+                <td>{formatarPlaca(o.plate)}</td>
                 <td>{o.maxCapacity}</td>
                 <td>{statusOnibus[o.status]}</td>
                 {tipoUsuario === 'GERENTE' && (

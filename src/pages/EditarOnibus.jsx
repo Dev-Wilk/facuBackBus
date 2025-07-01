@@ -38,7 +38,32 @@ export default function EditarOnibus() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    
+    if (name === 'plate') {
+      // Implementação da máscara para placa de ônibus
+      let placaFormatada = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      
+      // Limita o tamanho máximo da placa
+      if (placaFormatada.length > 7) {
+        placaFormatada = placaFormatada.substring(0, 7);
+      }
+      
+      // Aplica a máscara conforme o formato da placa
+      if (placaFormatada.length > 0) {
+        // Verifica se é o formato antigo (3 letras + 4 números) ou novo (3 letras + 1 número + 1 letra + 2 números)
+        const isFormatoAntigo = /^[A-Z]{3}\d{4}$/.test(placaFormatada);
+        const isFormatoNovo = /^[A-Z]{3}\d[A-Z]\d{2}$/.test(placaFormatada);
+        
+        // Aplica hífen após os 3 primeiros caracteres para o formato antigo
+        if (placaFormatada.length >= 3 && (isFormatoAntigo || (!isFormatoNovo && placaFormatada.length <= 7))) {
+          placaFormatada = placaFormatada.substring(0, 3) + '-' + placaFormatada.substring(3);
+        }
+      }
+      
+      setForm(prev => ({ ...prev, [name]: placaFormatada }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const validateForm = () => {
@@ -65,8 +90,11 @@ export default function EditarOnibus() {
     if (!validateForm()) return;
 
     try {
+      // Remove o hífen da placa antes de enviar para o backend
+      const placaSemHifen = form.plate.replace(/-/g, '');
+      
       await api.put(`/buses/${id}`, {
-        plate: form.plate,
+        plate: placaSemHifen,
         maxCapacity: Number(form.maxCapacity),
         status: form.status,
       });
