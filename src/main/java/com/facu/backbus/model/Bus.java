@@ -2,6 +2,7 @@ package com.facu.backbus.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 import com.facu.backbus.model.enums.BusStatus;
 
 
@@ -14,6 +15,7 @@ public class Bus {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @Size(max = 7, message = "A placa deve ter no máximo 7 caracteres")
     private String plate;
 
     @Column(nullable = false)

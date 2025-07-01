@@ -130,7 +130,7 @@ public class DataInitializer {
                     try {
                         // Cria os ônibus padrão
                         Bus bus1 = new Bus();
-                        bus1.setPlate("ABC-1234");
+                        bus1.setPlate("ABC1234"); 
                         bus1.setMaxCapacity(40);
                         bus1.setStatus(BusStatus.AVAILABLE);
                         
@@ -139,7 +139,7 @@ public class DataInitializer {
                         logger.info("Ônibus salvo com ID: {}", bus1Salvo.getId());
                         
                         Bus bus2 = new Bus();
-                        bus2.setPlate("XYZ-9876");
+                        bus2.setPlate("XYZ9876"); 
                         bus2.setMaxCapacity(50);
                         bus2.setStatus(BusStatus.AVAILABLE);
                         
@@ -193,7 +193,7 @@ public class DataInitializer {
                 }
             } catch (Exception e) {
                 logger.error("Erro durante a inicialização de dados: {}", e.getMessage(), e);
-                throw e; // Re-throw para garantir que o erro seja visível
+                throw e; 
             }
         };
     }
