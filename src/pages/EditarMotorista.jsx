@@ -34,11 +34,21 @@ export default function EditarMotorista() {
     const { name, value } = e.target;
 
     if (name === 'contact') {
-    
-      const somenteNumeros = value.replace(/\D/g, '');
-      if (somenteNumeros.length > 12) return;
-      setForm(prev => ({ ...prev, [name]: somenteNumeros }));
-   
+      // Implementação manual da máscara de telefone
+      let telefoneFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
+      
+      if (telefoneFormatado.length > 0) {
+        // Formata o número conforme digitação
+        telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
+        telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
+        
+        // Limita o tamanho
+        if (telefoneFormatado.length > 15) {
+          telefoneFormatado = telefoneFormatado.substring(0, 15);
+        }
+      }
+      
+      setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
@@ -49,13 +59,20 @@ export default function EditarMotorista() {
 
     setTelefoneErro('');
 
-    if (form.contact.length !== 12) {
-      setTelefoneErro('O telefone deve conter exatamente 12 dígitos.');
+    const telefoneSomenteNumeros = form.contact.replace(/\D/g, '');
+    if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
+      setTelefoneErro('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
       return;
     }
 
     try {
-      await api.put(`/drivers/${id}`, form);
+      // Preparar o payload com o telefone sem máscara
+      const payload = {
+        ...form,
+        contact: telefoneSomenteNumeros
+      };
+      
+      await api.put(`/drivers/${id}`, payload);
       alert('Motorista atualizado com sucesso!');
       navigate('/dashboard-admin');
     } catch (err) {
@@ -80,13 +97,14 @@ export default function EditarMotorista() {
         <input
           className="InputCadastro"
           name="contact"
-          placeholder="Telefone (somente números)"
+          placeholder="Telefone com DDD"
           value={form.contact}
           onChange={handleChange}
           required
-          maxLength={12}
+          maxLength={15}
           inputMode="numeric"
         />
+        {telefoneErro && <span className="erro">{telefoneErro}</span>}
         
 
         <input
