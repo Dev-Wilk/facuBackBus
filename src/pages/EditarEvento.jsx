@@ -102,8 +102,18 @@ export default function EditarEvento() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === 'telefoneResponsavel') {
-            const somenteNumeros = value.replace(/\D/g, '').slice(0, 12);
-            setForm(prev => ({ ...prev, [name]: somenteNumeros }));
+            let telefoneFormatado = value.replace(/\D/g, ''); 
+            
+            if (telefoneFormatado.length > 0) {
+                telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
+                
+                if (telefoneFormatado.length > 15) {
+                    telefoneFormatado = telefoneFormatado.substring(0, 15);
+                }
+            }
+            
+            setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
         } else {
             setForm(prev => ({ ...prev, [name]: value }));
         }
@@ -128,8 +138,9 @@ export default function EditarEvento() {
             return;
         }
 
-        if (form.telefoneResponsavel.length !== 12) {
-            setErroTelefone('O telefone deve conter exatamente 12 dígitos.');
+        const telefoneSomenteNumeros = form.telefoneResponsavel.replace(/\D/g, '');
+        if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
+            setErroTelefone('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
             return;
         }
 
@@ -140,29 +151,46 @@ export default function EditarEvento() {
         }
 
         try {
+            // Garantir que todos os campos numéricos sejam convertidos corretamente
+            const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
+            
             const payload = {
                 id: Number(id),
                 responsibleName: form.nomeResponsavel,
-                contactPhone: form.telefoneResponsavel,
+                contactPhone: telefoneSemMascara, 
                 eventLocation: form.localEvento,
                 eventDepartureDate: form.dataEvento,
                 eventReturnDate: form.dataRetorno,
                 departureTime: form.horarioIda,
                 returnTime: form.horarioVolta,
-                numberOfPassengers: Number(form.quantidadePassageiros),
-                employeeId: Number(form.funcionarioId),
+                numberOfPassengers: form.quantidadePassageiros ? Number(form.quantidadePassageiros) : 0,
+                employeeId: form.funcionarioId ? Number(form.funcionarioId) : null,
                 statusPayment: 'Confirmado',
-                eventValue: Number(form.valorEvento),
-                driverId: Number(form.motoristaId),
-                busId: Number(form.onibusIds),
+                eventValue: form.valorEvento ? Number(form.valorEvento) : 0,
+                driverId: form.motoristaId ? Number(form.motoristaId) : null,
+                busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
 
-            await api.put(`/events/${id}`, payload);
+            console.log('Enviando payload para edição:', payload);
+            console.log('Telefone original:', form.telefoneResponsavel);
+            console.log('Telefone sem máscara:', telefoneSemMascara);
+            
+            try {
+                const response = await api.put(`/events/${id}`, payload);
+                console.log('Resposta do servidor:', response.data);
+            } catch (apiError) {
+                console.error('Erro detalhado da API:', apiError.response?.data || apiError.message);
+                throw apiError;
+            }
             alert('Evento atualizado com sucesso!');
             navigate('/dashboard-admin');
         } catch (error) {
-            console.error('Erro ao atualizar evento:', error.response?.data || error.message);
-            alert('Erro ao atualizar evento');
+            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Erro desconhecido';
+            console.error('Erro ao atualizar evento:', errorMessage);
+            console.error('Detalhes completos do erro:', error);
+            
+            // Mostrar mensagem de erro mais detalhada para o usuário
+            alert(`Erro ao atualizar evento: ${errorMessage}`);
         }
     };
 
@@ -197,15 +225,22 @@ export default function EditarEvento() {
                         </div>
 
                         <div className="LinhaFormulario">
-                            <label>Telefone (12 dígitos):</label>
+                            <label>Telefone:</label>
                             <input
                                 name="telefoneResponsavel"
                                 type="text"
-                                maxLength="12"
+                                inputMode="numeric"
+                                maxLength="15"
+                                placeholder="(99) 99999-9999"
                                 value={form.telefoneResponsavel}
                                 onChange={handleChange}
                                 required
                             />
+                            {erroTelefone && (
+                                <span className="ErroTelefone">
+                                    {erroTelefone}
+                                </span>
+                            )}
                         </div>
 
                         <div className="LinhaFormulario">

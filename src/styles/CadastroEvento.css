@@ -101,3 +101,9 @@
 .ErroHorario {
     border: 1px solid #d9534f !important;
 }
+
+.ErroTelefone {
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}

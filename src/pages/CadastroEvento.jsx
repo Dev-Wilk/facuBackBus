@@ -48,12 +48,26 @@ export default function CadastroEvento() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
+        
+        // Tratamento especial para o campo de telefone
         if (name === 'telefoneResponsavel') {
-            const somenteNumeros = value.replace(/\D/g, '');
-            if (somenteNumeros.length > 12) return;
-            setForm(prev => ({ ...prev, [name]: somenteNumeros }));
+            // Implementação manual da máscara de telefone
+            let telefoneFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            
+            if (telefoneFormatado.length > 0) {
+                // Formata o número conforme digitação
+                telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
+                telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
+                
+                // Limita o tamanho
+                if (telefoneFormatado.length > 15) {
+                    telefoneFormatado = telefoneFormatado.substring(0, 15);
+                }
+            }
+            
+            setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
         } else {
+            // Para os demais campos, mantém o comportamento original
             setForm(prev => ({ ...prev, [name]: value }));
         }
     };
@@ -78,8 +92,9 @@ export default function CadastroEvento() {
             return;
         }
 
-        if (form.telefoneResponsavel.length !== 12) {
-            setTelefoneErro('O telefone do responsável deve conter exatamente 12 dígitos.');
+        const telefoneSomenteNumeros = form.telefoneResponsavel.replace(/\D/g, '');
+        if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
+            setTelefoneErro('O telefone do responsável deve conter 10 ou 11 dígitos (incluindo DDD).');
             erroEncontrado = true;
         }
 
@@ -105,27 +120,41 @@ export default function CadastroEvento() {
         if (erroEncontrado) return;
 
         try {
+            // Garantir que todos os campos numéricos sejam convertidos corretamente
+            // e que o telefone seja enviado apenas com números
+            const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
+            
             const payload = {
                 responsibleName: form.nomeResponsavel,
-                contactPhone: form.telefoneResponsavel,
+                contactPhone: telefoneSemMascara, 
                 eventLocation: form.localEvento,
                 eventDepartureDate: form.dataEvento,
                 eventReturnDate: form.dataRetorno,
                 departureTime: form.horarioIda,
                 returnTime: form.horarioVolta,
-                numberOfPassengers: Number(form.quantidadePassageiros),
-                employeeId: Number(form.funcionarioId),
-                eventValue: Number(form.valorEvento),
-                driverId: Number(form.motoristaId),
-                busId: Number(form.onibusIds),
+                numberOfPassengers: form.quantidadePassageiros ? Number(form.quantidadePassageiros) : 0,
+                employeeId: form.funcionarioId ? Number(form.funcionarioId) : null,
+                statusPayment: 'Confirmado', 
+                eventValue: form.valorEvento ? Number(form.valorEvento) : 0,
+                driverId: form.motoristaId ? Number(form.motoristaId) : null,
+                busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
-
-            await api.post('/events', payload);
+            
+            console.log('Enviando payload para cadastro:', payload);
+            console.log('Telefone original:', form.telefoneResponsavel);
+            console.log('Telefone sem máscara:', telefoneSemMascara);
+            
+            const response = await api.post('/events', payload);
+            console.log('Resposta do servidor:', response.data);
             alert('Evento cadastrado com sucesso!');
             navigate('/dashboard');
         } catch (error) {
-            console.error('Erro ao cadastrar evento:', error.response?.data || error.message);
-            alert('Erro ao cadastrar evento');
+            const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Erro desconhecido';
+            console.error('Erro ao cadastrar evento:', errorMessage);
+            console.error('Detalhes completos do erro:', error);
+            
+            // Mostrar mensagem de erro mais detalhada para o usuário
+            alert(`Erro ao cadastrar evento: ${errorMessage}`);
         }
     };
 
@@ -159,11 +188,17 @@ export default function CadastroEvento() {
                                 name='telefoneResponsavel'
                                 type='text'
                                 inputMode='numeric'
-                                maxLength="12"
+                                maxLength="15"
+                                placeholder="(99) 99999-9999"
                                 value={form.telefoneResponsavel}
                                 onChange={handleChange}
                                 required
                             />
+                            {telefoneErro && (
+                                <span className="ErroTelefone">
+                                    {telefoneErro}
+                                </span>
+                            )}
                         </div>
 
                         <div className="LinhaFormulario">
@@ -322,11 +357,6 @@ export default function CadastroEvento() {
                     <button className='ButtonCadastro' type='submit' form='form-evento'>
                         Salvar
                     </button>
-                    {telefoneErro && (
-                        <span style={{ color: '#CCC', fontSize: '0.9rem', marginTop: '2rem' }}>
-                            {telefoneErro}
-                        </span>
-                    )}
                 </div>
             </form>
         </div>
