@@ -66,6 +66,22 @@ export default function CadastroEvento() {
             }
             
             setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
+        } 
+        // Tratamento especial para o campo de valor
+        else if (name === 'valorEvento') {
+            // Implementação manual da máscara de valor monetário
+            let valorFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            
+            // Converte para formato de centavos
+            const valorEmCentavos = parseInt(valorFormatado, 10) || 0;
+            
+            // Formata como valor monetário (R$ 0.000,00)
+            valorFormatado = (valorEmCentavos / 100).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            setForm(prev => ({ ...prev, [name]: valorFormatado }));
         } else {
             // Para os demais campos, mantém o comportamento original
             setForm(prev => ({ ...prev, [name]: value }));
@@ -124,6 +140,9 @@ export default function CadastroEvento() {
             // e que o telefone seja enviado apenas com números
             const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
             
+            // Converter o valor formatado para número
+            const valorSemFormatacao = form.valorEvento.replace(/\D/g, '') / 100;
+            
             const payload = {
                 responsibleName: form.nomeResponsavel,
                 contactPhone: telefoneSemMascara, 
@@ -135,7 +154,7 @@ export default function CadastroEvento() {
                 numberOfPassengers: form.quantidadePassageiros ? Number(form.quantidadePassageiros) : 0,
                 employeeId: form.funcionarioId ? Number(form.funcionarioId) : null,
                 statusPayment: 'Confirmado', 
-                eventValue: form.valorEvento ? Number(form.valorEvento) : 0,
+                eventValue: valorSemFormatacao || 0,
                 driverId: form.motoristaId ? Number(form.motoristaId) : null,
                 busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
@@ -344,7 +363,9 @@ export default function CadastroEvento() {
                                 id='valorEvento'
                                 className='InputCadastroEvento'
                                 name='valorEvento'
-                                type='number'
+                                type='text'
+                                inputMode="numeric"
+                                placeholder="0,00"
                                 value={form.valorEvento}
                                 onChange={handleChange}
                                 required

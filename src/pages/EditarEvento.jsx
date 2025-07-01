@@ -114,6 +114,22 @@ export default function EditarEvento() {
             }
             
             setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
+        }
+        // Tratamento especial para o campo de valor
+        else if (name === 'valorEvento') {
+            // Implementação manual da máscara de valor monetário
+            let valorFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
+            
+            // Converte para formato de centavos
+            const valorEmCentavos = parseInt(valorFormatado, 10) || 0;
+            
+            // Formata como valor monetário (R$ 0.000,00)
+            valorFormatado = (valorEmCentavos / 100).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            
+            setForm(prev => ({ ...prev, [name]: valorFormatado }));
         } else {
             setForm(prev => ({ ...prev, [name]: value }));
         }
@@ -154,6 +170,9 @@ export default function EditarEvento() {
             // Garantir que todos os campos numéricos sejam convertidos corretamente
             const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
             
+            // Converter o valor formatado para número
+            const valorSemFormatacao = form.valorEvento.replace(/\D/g, '') / 100;
+            
             const payload = {
                 id: Number(id),
                 responsibleName: form.nomeResponsavel,
@@ -166,7 +185,7 @@ export default function EditarEvento() {
                 numberOfPassengers: form.quantidadePassageiros ? Number(form.quantidadePassageiros) : 0,
                 employeeId: form.funcionarioId ? Number(form.funcionarioId) : null,
                 statusPayment: 'Confirmado',
-                eventValue: form.valorEvento ? Number(form.valorEvento) : 0,
+                eventValue: valorSemFormatacao || 0,
                 driverId: form.motoristaId ? Number(form.motoristaId) : null,
                 busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
@@ -363,11 +382,14 @@ export default function EditarEvento() {
                         </div>
 
                         <div className="LinhaFormulario">
-                            <label>Valor (R$):</label>
+                            <label htmlFor="valorEvento">Valor (R$):</label>
                             <input
-                                name="valorEvento"
-                                type="number"
-                                min="0"
+                                id='valorEvento'
+                                className='InputCadastroEvento'
+                                name='valorEvento'
+                                type='text'
+                                inputMode="numeric"
+                                placeholder="0,00"
                                 value={form.valorEvento}
                                 onChange={handleChange}
                                 required
