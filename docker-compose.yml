@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Serviço do banco de dados PostgreSQL
+  postgres:
+    image: postgres:latest
+    container_name: facubus-postgres
+    environment:
+      POSTGRES_DB: facubus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - facubus-network
+
+  # Serviço do backend Spring Boot
+  backend:
+    build: ./backend
+    container_name: facubus-backend
+    depends_on:
+      - postgres
+    environment:
+      # Configuração para conectar ao PostgreSQL no Docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/facubus
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+    ports:
+      - "8082:8082"
+    networks:
+      - facubus-network
+
+  # Serviço do frontend
+  frontend:
+    build: ./frontend
+    container_name: facubus-frontend
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    networks:
+      - facubus-network
+
+# Definição de redes
+networks:
+  facubus-network:
+    driver: bridge
+
+# Definição de volumes
+volumes:
+  postgres_data:
