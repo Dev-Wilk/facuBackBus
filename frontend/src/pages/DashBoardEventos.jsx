@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/DashBoard.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DashBoardEventos() {
     const [eventos, setEventos] = useState([]);
@@ -27,7 +29,7 @@ export default function DashBoardEventos() {
             setMotoristas(motoristasRes.data);
             setOnibus(onibusRes.data);
         } catch (error) {
-            alert('Erro ao carregar dados');
+            toast.error('Erro ao carregar dados');
             console.error(error);
         } finally {
             setLoading(false);
@@ -39,10 +41,10 @@ export default function DashBoardEventos() {
 
         try {
             await api.delete(`/events/${id}`);
-            alert('Evento excluído com sucesso!');
+            toast.success('Evento excluído com sucesso!');
             setEventos(eventos.filter(e => e.id !== id));
         } catch (error) {
-            alert('Erro ao excluir evento');
+            toast.error('Erro ao excluir evento');
             console.error(error);
         }
     };
@@ -84,7 +86,6 @@ export default function DashBoardEventos() {
         return '—';
     };
 
-
     const encontrarMotorista = (driverId) => {
         if (!driverId) return '—';
         const m = motoristas.find(m => m.id === driverId);
@@ -96,6 +97,21 @@ export default function DashBoardEventos() {
         const o = onibus.find(o => o.id === busId);
         return o ? (o.plate || o.placa || '—') : '—';
     };
+
+    // Função que formata telefone
+    function formatarTelefone(numero) {
+      if (!numero) return '—';
+
+      const numeros = numero.replace(/\D/g, '');
+
+      if (numeros.length === 11) {
+        return numeros.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+      } else if (numeros.length === 10) {
+        return numeros.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+      } else {
+        return numero;
+      }
+    }
 
     return (
         <div className='ContainerCadastro'>
@@ -126,7 +142,7 @@ export default function DashBoardEventos() {
                             {eventos.map(e => (
                                 <tr key={e.id}>
                                     <td>{e.responsibleName}</td>
-                                    <td>{e.contactPhone}</td>
+                                    <td>{formatarTelefone(e.contactPhone)}</td>
                                     <td>{e.eventLocation}</td>
                                     <td>{formatarData(e.eventDepartureDate)} / {formatarData(e.eventReturnDate)}</td>
                                     <td>{formatarHora(e.departureTime)} / {formatarHora(e.returnTime)}</td>
@@ -154,6 +170,7 @@ export default function DashBoardEventos() {
                     </table>
                 </div>
             )}
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </div>
     );
 }

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/DashBoard.css';
 import { statusOnibus } from '../utils/statusLabels';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DashBoardOnibus() {
   const [onibus, setOnibus] = useState([]);
@@ -11,15 +13,10 @@ export default function DashBoardOnibus() {
   // Função para formatar a placa com hífen
   const formatarPlaca = (placa) => {
     if (!placa) return '';
-    
-    // Remove qualquer hífen existente
     const placaSemHifen = placa.replace(/-/g, '');
-    
-    // Se a placa tem pelo menos 3 caracteres, insere o hífen
     if (placaSemHifen.length >= 3) {
       return placaSemHifen.substring(0, 3) + '-' + placaSemHifen.substring(3);
     }
-    
     return placaSemHifen;
   };
 
@@ -34,7 +31,7 @@ export default function DashBoardOnibus() {
       setOnibus(response.data);
     } catch (error) {
       console.error('Erro ao buscar ônibus:', error);
-      alert('Erro ao buscar ônibus');
+      toast.error('Erro ao buscar ônibus');
     }
   };
 
@@ -43,10 +40,10 @@ export default function DashBoardOnibus() {
     try {
       await api.delete(`/buses/${id}`);
       setOnibus((prev) => prev.filter((o) => o.id !== id));
-      alert('Ônibus excluído com sucesso!');
+      toast.success('Ônibus excluído com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir ônibus:', error);
-      alert('Erro ao excluir ônibus');
+      toast.error('Erro ao excluir ônibus');
     }
   };
 
@@ -84,6 +81,7 @@ export default function DashBoardOnibus() {
           </tbody>
         </table>
       </div>
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </div>
   );
 }

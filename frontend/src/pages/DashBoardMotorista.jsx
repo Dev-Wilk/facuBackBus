@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/DashBoard.css';
 import { statusMotorista } from '../utils/statusLabels';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DashBoardMotorista() {
   const [motoristas, setMotoristas] = useState([]);
@@ -19,7 +21,7 @@ export default function DashBoardMotorista() {
       setMotoristas(response.data);
     } catch (error) {
       console.error('Erro ao buscar motoristas:', error);
-      alert('Erro ao buscar motoristas');
+      toast.error('Erro ao buscar motoristas');
     }
   };
 
@@ -30,12 +32,37 @@ export default function DashBoardMotorista() {
     try {
       await api.delete(`/drivers/${id}`);
       setMotoristas((prev) => prev.filter((m) => m.id !== id));
-      alert('Motorista excluído com sucesso!');
+      toast.success('Motorista excluído com sucesso!');
     } catch (error) {
       console.error('Erro ao excluir motorista:', error);
-      alert('Erro ao excluir motorista');
+      toast.error('Erro ao excluir motorista');
     }
   };
+
+  // Função para formatar telefone
+  function formatarTelefone(numero) {
+    if (!numero) return '—';
+
+    const numeros = numero.replace(/\D/g, '');
+
+    if (numeros.length === 11) {
+      return numeros.replace(/^(\d{2})(\d{5})(\d{4})$/, '($1) $2-$3');
+    } else if (numeros.length === 10) {
+      return numeros.replace(/^(\d{2})(\d{4})(\d{4})$/, '($1) $2-$3');
+    } else {
+      return numero;
+    }
+  }
+
+  // Função para formatar CNH
+  function formatarCNH(cnh) {
+    if (!cnh) return '—';
+    const numeros = cnh.replace(/\D/g, '');
+    if (numeros.length === 11) {
+      return numeros.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, '$1.$2.$3-$4');
+    }
+    return cnh;
+  }
 
   return (
     <div className='ContainerCadastro'>
@@ -55,8 +82,8 @@ export default function DashBoardMotorista() {
             {motoristas.map((m) => (
               <tr key={m.id}>
                 <td>{m.fullName}</td>
-                <td>{m.contact}</td>
-                <td>{m.identificationNumber}</td>
+                <td>{formatarTelefone(m.contact)}</td>
+                <td>{formatarCNH(m.identificationNumber)}</td>
                 <td>{statusMotorista[m.status]}</td>
                 {tipoUsuario === 'GERENTE' && (
                   <td>
@@ -73,6 +100,7 @@ export default function DashBoardMotorista() {
           </tbody>
         </table>
       </div>
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </div>
   );
 }

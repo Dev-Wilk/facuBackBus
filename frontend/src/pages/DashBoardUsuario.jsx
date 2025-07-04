@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/DashBoard.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DashBoardUsuario() {
     const [usuarios, setUsuarios] = useState([]);
@@ -18,7 +20,7 @@ export default function DashBoardUsuario() {
             setUsuarios(response.data);
         } catch (error) {
             console.error('Erro ao buscar usuários:', error);
-            alert('Erro ao buscar usuários');
+            toast.error('Erro ao buscar usuários');
         }
     };
 
@@ -29,10 +31,10 @@ export default function DashBoardUsuario() {
         try {
             await api.delete(`/users/${id}`);
             setUsuarios((prev) => prev.filter((u) => u.id !== id));
-            alert('Usuário excluído com sucesso!');
+            toast.success('Usuário excluído com sucesso!');
         } catch (error) {
             console.error('Erro ao excluir usuário:', error);
-            alert('Erro ao excluir usuário');
+            toast.error('Erro ao excluir usuário');
         }
     };
 
@@ -70,6 +72,7 @@ export default function DashBoardUsuario() {
                     </tbody>
                 </table>
             </div>
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </div>
     );
 }
