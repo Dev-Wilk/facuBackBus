@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; 
+import { useNavigate } from 'react-router-dom'; 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import api from '../services/Api';
 import '../styles/Login.css';
 
@@ -35,7 +38,7 @@ function Login() {
       window.location.reload();
     } catch (error) {
       console.error('Erro no login:', error);
-      alert('Login inválido. Verifique seu usuário e senha.');
+      toast.error('Login inválido. Verifique seu usuário e senha.');
     }
   };
 
@@ -45,7 +48,7 @@ function Login() {
       <div className='ContainerLogin'>
         <form className='FormLogin' onSubmit={handleLogin}>
           <div className='DivLogo'>
-            <h1 className='loginText' >Login</h1>
+            <h1 className='loginText'>Login</h1>
           </div>
 
           <div className='DivInpt'>
@@ -72,6 +75,18 @@ function Login() {
           </div>
         </form>
       </div>
+
+      {/* Aqui o ToastContainer exibe os toasts no canto superior direito */}
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="colored"
+      />
     </div>
   );
 }

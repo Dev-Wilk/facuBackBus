@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import api from '../services/Api';
-import '../styles/CadastroUsuario.css'; 
+import '../styles/CadastroUsuario.css';
 
 export default function EditarMotorista() {
   const { id } = useParams();
@@ -14,15 +17,13 @@ export default function EditarMotorista() {
     status: 'AVAILABLE',
   });
 
-  const [telefoneErro, setTelefoneErro] = useState('');
-
   useEffect(() => {
     async function fetchDriver() {
       try {
         const response = await api.get(`/drivers/${id}`);
         setForm(response.data);
       } catch (error) {
-        alert('Erro ao buscar motorista');
+        toast.error('Erro ao buscar motorista');
         navigate('/dashboard-admin');
       }
     }
@@ -34,20 +35,16 @@ export default function EditarMotorista() {
     const { name, value } = e.target;
 
     if (name === 'contact') {
-      // Implementação manual da máscara de telefone
-      let telefoneFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-      
+      let telefoneFormatado = value.replace(/\D/g, '');
+
       if (telefoneFormatado.length > 0) {
-        // Formata o número conforme digitação
         telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
         telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-        
-        // Limita o tamanho
         if (telefoneFormatado.length > 15) {
           telefoneFormatado = telefoneFormatado.substring(0, 15);
         }
       }
-      
+
       setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
@@ -57,26 +54,23 @@ export default function EditarMotorista() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setTelefoneErro('');
-
     const telefoneSomenteNumeros = form.contact.replace(/\D/g, '');
     if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
-      setTelefoneErro('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
+      toast.error('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
       return;
     }
 
     try {
-      // Preparar o payload com o telefone sem máscara
       const payload = {
         ...form,
-        contact: telefoneSomenteNumeros
+        contact: telefoneSomenteNumeros,
       };
-      
+
       await api.put(`/drivers/${id}`, payload);
-      alert('Motorista atualizado com sucesso!');
+      toast.success('Motorista atualizado com sucesso!');
       navigate('/dashboard-admin');
     } catch (err) {
-      alert('Erro ao atualizar motorista');
+      toast.error('Erro ao atualizar motorista');
       console.error('Erro na requisição:', err);
     }
   };
@@ -104,8 +98,6 @@ export default function EditarMotorista() {
           maxLength={15}
           inputMode="numeric"
         />
-        {telefoneErro && <span className="erro">{telefoneErro}</span>}
-        
 
         <input
           className="InputCadastro"
@@ -132,12 +124,10 @@ export default function EditarMotorista() {
         <button className="ButtonCadastro" type="submit">
           Salvar
         </button>
-        {telefoneErro && (
-          <span style={{ color: '#CCC', fontSize: '0.9rem', marginTop: '2rem' }}>
-            {telefoneErro}
-          </span>
-        )}
       </form>
+
+      {/* Toast Container visível em toda tela */}
+      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
     </div>
   );
 }

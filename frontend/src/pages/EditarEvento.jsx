@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/Api';
 import { statusMotorista } from '../utils/statusLabels';
 import '../styles/CadastroEvento.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function EditarEvento() {
     const { id } = useParams();
@@ -56,16 +58,13 @@ export default function EditarEvento() {
                     return horario || '';
                 };
 
-
                 const motoristaEvento = motoristasRes.data.find(m => m.id === evento.driverId);
                 const onibusEvento = onibusRes.data.find(o => o.id === evento.busId);
-
 
                 let motoristas = motoristasRes.data;
                 if (motoristaEvento && !motoristas.find(m => m.id === motoristaEvento.id)) {
                     motoristas = [motoristaEvento, ...motoristas];
                 }
-
 
                 let onibus = onibusRes.data;
                 if (onibusEvento && !onibus.find(o => o.id === onibusEvento.id)) {
@@ -92,7 +91,7 @@ export default function EditarEvento() {
                 setOnibusDisponiveis(onibus);
             } catch (err) {
                 console.error('Erro ao buscar dados:', err);
-                alert('Erro ao carregar dados do evento');
+                toast.error('Erro ao carregar dados do evento');
                 navigate('/dashboard-admin');
             }
         }
@@ -102,33 +101,22 @@ export default function EditarEvento() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         if (name === 'telefoneResponsavel') {
-            let telefoneFormatado = value.replace(/\D/g, ''); 
-            
+            let telefoneFormatado = value.replace(/\D/g, '');
             if (telefoneFormatado.length > 0) {
                 telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
                 telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-                
                 if (telefoneFormatado.length > 15) {
                     telefoneFormatado = telefoneFormatado.substring(0, 15);
                 }
             }
-            
             setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
-        }
-        // Tratamento especial para o campo de valor
-        else if (name === 'valorEvento') {
-            // Implementação manual da máscara de valor monetário
-            let valorFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-            
-            // Converte para formato de centavos
+        } else if (name === 'valorEvento') {
+            let valorFormatado = value.replace(/\D/g, '');
             const valorEmCentavos = parseInt(valorFormatado, 10) || 0;
-            
-            // Formata como valor monetário (R$ 0.000,00)
             valorFormatado = (valorEmCentavos / 100).toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-            
             setForm(prev => ({ ...prev, [name]: valorFormatado }));
         } else {
             setForm(prev => ({ ...prev, [name]: value }));
@@ -137,7 +125,6 @@ export default function EditarEvento() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         setErroTelefone('');
 
         const hoje = new Date();
@@ -145,12 +132,12 @@ export default function EditarEvento() {
         const dataVolta = new Date(form.dataRetorno + 'T00:00');
 
         if (dataIda < hoje.setHours(0, 0, 0, 0)) {
-            alert('A data do evento não pode ser anterior à data atual.');
+            toast.error('A data do evento não pode ser anterior à data atual.');
             return;
         }
 
         if (dataVolta < dataIda) {
-            alert('A data de retorno não pode ser anterior à data do evento.');
+            toast.error('A data de retorno não pode ser anterior à data do evento.');
             return;
         }
 
@@ -162,21 +149,18 @@ export default function EditarEvento() {
 
         const onibusSelecionado = onibusDisponiveis.find(o => o.id.toString() === form.onibusIds);
         if (onibusSelecionado && Number(form.quantidadePassageiros) > Number(onibusSelecionado.maxCapacity)) {
-            alert(`Passageiros excedem a capacidade máxima do ônibus (${onibusSelecionado.maxCapacity})`);
+            toast.error(`Passageiros excedem a capacidade máxima do ônibus (${onibusSelecionado.maxCapacity})`);
             return;
         }
 
         try {
-            // Garantir que todos os campos numéricos sejam convertidos corretamente
             const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
-            
-            // Converter o valor formatado para número
             const valorSemFormatacao = form.valorEvento.replace(/\D/g, '') / 100;
-            
+
             const payload = {
                 id: Number(id),
                 responsibleName: form.nomeResponsavel,
-                contactPhone: telefoneSemMascara, 
+                contactPhone: telefoneSemMascara,
                 eventLocation: form.localEvento,
                 eventDepartureDate: form.dataEvento,
                 eventReturnDate: form.dataRetorno,
@@ -190,36 +174,21 @@ export default function EditarEvento() {
                 busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
 
-            console.log('Enviando payload para edição:', payload);
-            console.log('Telefone original:', form.telefoneResponsavel);
-            console.log('Telefone sem máscara:', telefoneSemMascara);
-            
-            try {
-                const response = await api.put(`/events/${id}`, payload);
-                console.log('Resposta do servidor:', response.data);
-            } catch (apiError) {
-                console.error('Erro detalhado da API:', apiError.response?.data || apiError.message);
-                throw apiError;
-            }
-            alert('Evento atualizado com sucesso!');
+            await api.put(`/events/${id}`, payload);
+            toast.success('Evento atualizado com sucesso!');
             navigate('/dashboard-admin');
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Erro desconhecido';
             console.error('Erro ao atualizar evento:', errorMessage);
-            console.error('Detalhes completos do erro:', error);
-            
-            // Mostrar mensagem de erro mais detalhada para o usuário
-            alert(`Erro ao atualizar evento: ${errorMessage}`);
+            toast.error(`Erro ao atualizar evento: ${errorMessage}`);
         }
     };
-
 
     const motoristasDisponiveisFiltrados = motoristasDisponiveis.filter(m => m.status === 'AVAILABLE');
     const motoristaSelecionado = motoristasDisponiveis.find(m => m.id.toString() === form.motoristaId);
     const motoristasParaExibir = motoristaSelecionado && motoristaSelecionado.status !== 'AVAILABLE'
         ? [motoristaSelecionado, ...motoristasDisponiveisFiltrados.filter(m => m.id !== motoristaSelecionado.id)]
         : motoristasDisponiveisFiltrados;
-
 
     const onibusDisponiveisFiltrados = onibusDisponiveis.filter(o => o.status === 'AVAILABLE');
     const onibusSelecionado = onibusDisponiveis.find(o => o.id.toString() === form.onibusIds);
@@ -408,6 +377,7 @@ export default function EditarEvento() {
                     Salvar
                 </button>
             </form>
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </div>
     );
 }

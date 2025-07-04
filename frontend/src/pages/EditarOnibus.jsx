@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import api from '../services/Api';
-import '../styles/CadastroUsuario.css'; 
+import '../styles/CadastroUsuario.css';
 
 export default function EditarOnibus() {
   const { id } = useParams();
@@ -24,11 +27,11 @@ export default function EditarOnibus() {
         const response = await api.get(`/buses/${id}`);
         setForm({
           plate: response.data.plate,
-          maxCapacity: response.data.maxCapacity.toString(), 
+          maxCapacity: response.data.maxCapacity.toString(),
           status: response.data.status,
         });
       } catch (error) {
-        alert('Erro ao buscar ônibus');
+        toast.error('Erro ao buscar ônibus');
         navigate('/dashboard-admin');
       }
     }
@@ -38,31 +41,18 @@ export default function EditarOnibus() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'plate') {
-      // Implementação da máscara para placa de ônibus
       let placaFormatada = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      
-      // Limita o tamanho máximo da placa
       if (placaFormatada.length > 7) {
         placaFormatada = placaFormatada.substring(0, 7);
       }
-      
-      // Aplica a máscara conforme o formato da placa
-      if (placaFormatada.length > 0) {
-        // Verifica se é o formato antigo (3 letras + 4 números) ou novo (3 letras + 1 número + 1 letra + 2 números)
-        const isFormatoAntigo = /^[A-Z]{3}\d{4}$/.test(placaFormatada);
-        const isFormatoNovo = /^[A-Z]{3}\d[A-Z]\d{2}$/.test(placaFormatada);
-        
-        // Aplica hífen após os 3 primeiros caracteres para o formato antigo
-        if (placaFormatada.length >= 3 && (isFormatoAntigo || (!isFormatoNovo && placaFormatada.length <= 7))) {
-          placaFormatada = placaFormatada.substring(0, 3) + '-' + placaFormatada.substring(3);
-        }
+      if (placaFormatada.length >= 3) {
+        placaFormatada = placaFormatada.substring(0, 3) + '-' + placaFormatada.substring(3);
       }
-      
       setForm(prev => ({ ...prev, [name]: placaFormatada }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm(prev => ({ ...prev, [name]: value }));
     }
   };
 
@@ -90,18 +80,18 @@ export default function EditarOnibus() {
     if (!validateForm()) return;
 
     try {
-      // Remove o hífen da placa antes de enviar para o backend
       const placaSemHifen = form.plate.replace(/-/g, '');
-      
+
       await api.put(`/buses/${id}`, {
         plate: placaSemHifen,
         maxCapacity: Number(form.maxCapacity),
         status: form.status,
       });
-      alert('Ônibus atualizado com sucesso!');
+
+      toast.success('Ônibus atualizado com sucesso!');
       navigate('/dashboard-admin');
     } catch (err) {
-      alert('Erro ao atualizar ônibus');
+      toast.error('Erro ao atualizar ônibus');
       console.error('Erro na requisição:', err.response?.data || err.message);
     }
   };
@@ -149,6 +139,7 @@ export default function EditarOnibus() {
           Salvar
         </button>
       </form>
+      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
     </div>
   );
 }
