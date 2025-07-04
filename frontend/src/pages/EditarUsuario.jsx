@@ -22,18 +22,25 @@ export default function EditarUsuario() {
   });
 
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const response = await api.get(`/users/${id}`);
-        setForm(response.data);
-      } catch (error) {
-        toast.error('Erro ao buscar usuário');
-        navigate('/');
-      }
+  async function fetchUser() {
+    try {
+      const response = await api.get(`/users/${id}`);
+      const userData = response.data;
+      setForm({
+        fullName: userData.fullName || '',
+        login: userData.login || '',
+        password: '',  // senha não preenchida
+        userType: userData.userType || 'ATENDENTE',
+      });
+    } catch (error) {
+      toast.error('Erro ao buscar usuário');
+      navigate('/');
     }
+  }
 
-    fetchUser();
-  }, [id, navigate]);
+  fetchUser();
+}, [id, navigate]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
