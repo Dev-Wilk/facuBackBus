@@ -78,7 +78,7 @@ function Login() {
 
       {/* Aqui o ToastContainer exibe os toasts no canto superior direito */}
       <ToastContainer
-        position="top-right"
+        position="top-center"
         autoClose={4000}
         hideProgressBar={false}
         newestOnTop={false}

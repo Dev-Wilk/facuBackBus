@@ -91,7 +91,7 @@ export default function EditarOnibus() {
       toast.success('Ônibus atualizado com sucesso!');
       navigate('/dashboard-admin');
     } catch (err) {
-      toast.error('Erro ao atualizar ônibus');
+      toast.error('Essa placa já está cadastrada. Por favor, insira uma placa diferente.');
       console.error('Erro na requisição:', err.response?.data || err.message);
     }
   };
@@ -139,7 +139,7 @@ export default function EditarOnibus() {
           Salvar
         </button>
       </form>
-      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
+      <ToastContainer position="top-center" autoClose={4000} theme="colored" />
     </div>
   );
 }

@@ -54,7 +54,7 @@ export default function EditarUsuario() {
 
     const passwordError = validatePassword(form.password);
 if (passwordError) {
-  toast.warn(passwordError);
+  toast.error(passwordError);
   return;
 }
 
@@ -115,7 +115,7 @@ if (passwordError) {
 
        
       </form>
-      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
+      <ToastContainer position="top-center" autoClose={4000} theme="colored" />
     </div>
   );
 }

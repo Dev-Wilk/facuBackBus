@@ -127,7 +127,7 @@ export default function EditarMotorista() {
       </form>
 
       {/* Toast Container visível em toda tela */}
-      <ToastContainer position="top-right" autoClose={4000} theme="colored" />
+      <ToastContainer position="top-center" autoClose={4000} theme="colored" />
     </div>
   );
 }
