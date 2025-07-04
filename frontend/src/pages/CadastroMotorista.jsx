@@ -20,17 +20,20 @@ export default function CadastroMotorista() {
     const { name, value } = e.target;
 
     if (name === 'contact') {
-      let telefoneFormatado = value.replace(/\D/g, '');
-
-      if (telefoneFormatado.length > 0) {
-        telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
-        telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-        if (telefoneFormatado.length > 15) {
-          telefoneFormatado = telefoneFormatado.substring(0, 15);
-        }
+      let telefone = value.replace(/\D/g, '').slice(0, 11);
+      if (telefone.length > 0) {
+        telefone = telefone.replace(/^(\d{2})(\d)/g, '($1) $2');
+        telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2');
       }
+      setForm(prev => ({ ...prev, [name]: telefone }));
 
-      setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
+    } else if (name === 'identificationNumber') {
+      let cnh = value.replace(/\D/g, '').slice(0, 11);
+      if (cnh.length > 3) cnh = cnh.replace(/^(\d{3})(\d)/, '$1.$2');
+      if (cnh.length > 6) cnh = cnh.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+      if (cnh.length > 9) cnh = cnh.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+      setForm(prev => ({ ...prev, [name]: cnh }));
+
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
@@ -39,29 +42,32 @@ export default function CadastroMotorista() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const telefoneSomenteNumeros = form.contact.replace(/\D/g, '');
-    if (telefoneSomenteNumeros.length !== 10 && telefoneSomenteNumeros.length !== 11) {
-      toast.error('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).', { autoClose: 3000, position: 'top-center' });
+    const telefoneLimpo = form.contact.replace(/\D/g, '');
+    const cnhLimpa = form.identificationNumber.replace(/\D/g, '');
+
+    if (telefoneLimpo.length !== 11) {
+      toast.error('O telefone deve conter exatamente 11 dígitos (incluindo DDD).');
+      return;
+    }
+
+    if (cnhLimpa.length !== 11) {
+      toast.error('A CNH deve conter exatamente 11 dígitos.');
       return;
     }
 
     try {
       const payload = {
         ...form,
-        contact: telefoneSomenteNumeros,
+        contact: telefoneLimpo,
+        identificationNumber: cnhLimpa,
       };
 
       await api.post('/drivers', payload);
-      toast.success('Motorista cadastrado com sucesso!', { autoClose: 3000, position: 'top-center' });
+      toast.success('Motorista cadastrado com sucesso!');
       navigate('/dashboard-admin');
     } catch (err) {
-      toast.error('Erro ao cadastrar motorista', { autoClose: 3000, position: 'top-center' });
-      if (err.response) {
-        console.error('Status:', err.response.status);
-        console.error('Data:', err.response.data);
-      } else {
-        console.error('Erro:', err.message);
-      }
+      toast.error('Erro ao cadastrar motorista');
+      console.error(err);
     }
   };
 
@@ -96,6 +102,8 @@ export default function CadastroMotorista() {
           value={form.identificationNumber}
           onChange={handleChange}
           required
+          maxLength={18}
+          inputMode="numeric"
         />
 
         <select

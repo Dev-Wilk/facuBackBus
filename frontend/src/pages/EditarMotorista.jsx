@@ -21,7 +21,25 @@ export default function EditarMotorista() {
     async function fetchDriver() {
       try {
         const response = await api.get(`/drivers/${id}`);
-        setForm(response.data);
+        const data = response.data;
+
+        let telefone = data.contact?.replace(/\D/g, '').slice(0, 11) || '';
+        if (telefone.length > 0) {
+          telefone = telefone.replace(/^(\d{2})(\d)/g, '($1) $2');
+          telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2');
+        }
+
+        let cnh = data.identificationNumber || '';
+        cnh = cnh.replace(/\D/g, '').slice(0, 11);
+        if (cnh.length > 3) cnh = cnh.replace(/^(\d{3})(\d)/, '$1.$2');
+        if (cnh.length > 6) cnh = cnh.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+        if (cnh.length > 9) cnh = cnh.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+
+        setForm({
+          ...data,
+          contact: telefone,
+          identificationNumber: cnh,
+        });
       } catch (error) {
         toast.error('Erro ao buscar motorista');
         navigate('/dashboard-admin');
@@ -35,17 +53,20 @@ export default function EditarMotorista() {
     const { name, value } = e.target;
 
     if (name === 'contact') {
-      let telefoneFormatado = value.replace(/\D/g, '');
-
-      if (telefoneFormatado.length > 0) {
-        telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
-        telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-        if (telefoneFormatado.length > 15) {
-          telefoneFormatado = telefoneFormatado.substring(0, 15);
-        }
+      let telefone = value.replace(/\D/g, '').slice(0, 11);
+      if (telefone.length > 0) {
+        telefone = telefone.replace(/^(\d{2})(\d)/g, '($1) $2');
+        telefone = telefone.replace(/(\d{5})(\d)/, '$1-$2');
       }
+      setForm(prev => ({ ...prev, [name]: telefone }));
 
-      setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
+    } else if (name === 'identificationNumber') {
+      let cnh = value.replace(/\D/g, '').slice(0, 11);
+      if (cnh.length > 3) cnh = cnh.replace(/^(\d{3})(\d)/, '$1.$2');
+      if (cnh.length > 6) cnh = cnh.replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3');
+      if (cnh.length > 9) cnh = cnh.replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+      setForm(prev => ({ ...prev, [name]: cnh }));
+
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
     }
@@ -55,8 +76,15 @@ export default function EditarMotorista() {
     e.preventDefault();
 
     const telefoneSomenteNumeros = form.contact.replace(/\D/g, '');
-    if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
-      toast.error('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
+    const cnhSomenteNumeros = form.identificationNumber.replace(/\D/g, '');
+
+    if (telefoneSomenteNumeros.length !== 11) {
+      toast.error('O telefone deve conter exatamente 11 dígitos (incluindo DDD).');
+      return;
+    }
+
+    if (cnhSomenteNumeros.length !== 11) {
+      toast.error('A CNH deve conter exatamente 11 dígitos.');
       return;
     }
 
@@ -64,6 +92,7 @@ export default function EditarMotorista() {
       const payload = {
         ...form,
         contact: telefoneSomenteNumeros,
+        identificationNumber: cnhSomenteNumeros,
       };
 
       await api.put(`/drivers/${id}`, payload);
@@ -106,6 +135,8 @@ export default function EditarMotorista() {
           value={form.identificationNumber}
           onChange={handleChange}
           required
+          maxLength={18}
+          inputMode="numeric"
         />
 
         <select
@@ -126,7 +157,6 @@ export default function EditarMotorista() {
         </button>
       </form>
 
-      {/* Toast Container visível em toda tela */}
       <ToastContainer position="top-center" autoClose={4000} theme="colored" />
     </div>
   );

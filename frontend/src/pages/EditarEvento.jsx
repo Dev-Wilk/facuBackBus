@@ -25,7 +25,6 @@ export default function EditarEvento() {
         onibusIds: '',
     });
 
-    const [erroTelefone, setErroTelefone] = useState('');
     const [funcionariosDisponiveis, setFuncionariosDisponiveis] = useState([]);
     const [motoristasDisponiveis, setMotoristasDisponiveis] = useState([]);
     const [onibusDisponiveis, setOnibusDisponiveis] = useState([]);
@@ -91,7 +90,7 @@ export default function EditarEvento() {
                 setOnibusDisponiveis(onibus);
             } catch (err) {
                 console.error('Erro ao buscar dados:', err);
-                toast.error('Erro ao carregar dados do evento');
+                toast.error('Erro ao carregar dados do evento', { autoClose: 3000, position: 'top-center' });
                 navigate('/dashboard-admin');
             }
         }
@@ -125,31 +124,30 @@ export default function EditarEvento() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setErroTelefone('');
 
         const hoje = new Date();
         const dataIda = new Date(form.dataEvento + 'T00:00');
         const dataVolta = new Date(form.dataRetorno + 'T00:00');
 
         if (dataIda < hoje.setHours(0, 0, 0, 0)) {
-            toast.error('A data do evento não pode ser anterior à data atual.');
+            toast.error('A data do evento não pode ser anterior à data atual.', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
         if (dataVolta < dataIda) {
-            toast.error('A data de retorno não pode ser anterior à data do evento.');
+            toast.error('A data de retorno não pode ser anterior à data do evento.', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
         const telefoneSomenteNumeros = form.telefoneResponsavel.replace(/\D/g, '');
-        if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
-            setErroTelefone('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
+        if (telefoneSomenteNumeros.length !== 11) {
+            toast.error('O telefone do responsável deve conter exatamente 11 dígitos (DDD + número).', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
         const onibusSelecionado = onibusDisponiveis.find(o => o.id.toString() === form.onibusIds);
         if (onibusSelecionado && Number(form.quantidadePassageiros) > Number(onibusSelecionado.maxCapacity)) {
-            toast.error(`Passageiros excedem a capacidade máxima do ônibus (${onibusSelecionado.maxCapacity})`);
+            toast.error(`Passageiros excedem a capacidade máxima do ônibus (${onibusSelecionado.maxCapacity}).`, { autoClose: 3000, position: 'top-center' });
             return;
         }
 
@@ -175,12 +173,12 @@ export default function EditarEvento() {
             };
 
             await api.put(`/events/${id}`, payload);
-            toast.success('Evento atualizado com sucesso!');
+            toast.success('Evento atualizado com sucesso!', { autoClose: 3000, position: 'top-center' });
             navigate('/dashboard-admin');
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Erro desconhecido';
             console.error('Erro ao atualizar evento:', errorMessage);
-            toast.error(`Erro ao atualizar evento: ${errorMessage}`);
+            toast.error(`Erro ao atualizar evento: ${errorMessage}`, { autoClose: 4000, position: 'top-center' });
         }
     };
 
@@ -224,11 +222,6 @@ export default function EditarEvento() {
                                 onChange={handleChange}
                                 required
                             />
-                            {erroTelefone && (
-                                <span className="ErroTelefone">
-                                    {erroTelefone}
-                                </span>
-                            )}
                         </div>
 
                         <div className="LinhaFormulario">
@@ -366,12 +359,6 @@ export default function EditarEvento() {
                         </div>
                     </div>
                 </div>
-
-                {erroTelefone && (
-                    <span style={{ color: '#CCC', fontSize: '0.9rem', marginTop: '2rem' }}>
-                        {erroTelefone}
-                    </span>
-                )}
 
                 <button className="ButtonCadastro" type="submit">
                     Salvar

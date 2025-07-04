@@ -51,7 +51,7 @@ export default function CadastroEvento() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        
+
         if (name === 'telefoneResponsavel') {
             let telefoneFormatado = value.replace(/\D/g, '');
             if (telefoneFormatado.length > 0) {
@@ -96,10 +96,11 @@ export default function CadastroEvento() {
         }
 
         const telefoneSomenteNumeros = form.telefoneResponsavel.replace(/\D/g, '');
-        if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
-            setTelefoneErro('O telefone do responsável deve conter 10 ou 11 dígitos (incluindo DDD).');
+        if (telefoneSomenteNumeros.length !== 11) {
+            toast.error('O telefone do responsável deve conter exatamente 11 dígitos (DDD + número).', { autoClose: 3000, position: 'top-center' });
             erroEncontrado = true;
         }
+
 
         const onibusSelecionado = onibusDisponiveis.find(
             (o) => o.id.toString() === form.onibusIds.toString()
@@ -192,11 +193,6 @@ export default function CadastroEvento() {
                                 onChange={handleChange}
                                 required
                             />
-                            {telefoneErro && (
-                                <span className="ErroTelefone">
-                                    {telefoneErro}
-                                </span>
-                            )}
                         </div>
 
                         <div className="LinhaFormulario">
