@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/Api'; 
 import '../styles/CadastroUsuario.css'; 
 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function CadastroOnibus() {
   const navigate = useNavigate();
 
@@ -12,30 +15,20 @@ export default function CadastroOnibus() {
     status: 'AVAILABLE',    
   });
 
-  const [errors, setErrors] = useState({
-    plate: '',
-    maxCapacity: '',
-  });
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     
     if (name === 'plate') {
-      // Implementação da máscara para placa de ônibus
       let placaFormatada = value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-      
-      // Limita o tamanho máximo da placa
+
       if (placaFormatada.length > 7) {
         placaFormatada = placaFormatada.substring(0, 7);
       }
       
-      // Aplica a máscara conforme o formato da placa
       if (placaFormatada.length > 0) {
-        // Verifica se é o formato antigo (3 letras + 4 números) ou novo (3 letras + 1 número + 1 letra + 2 números)
         const isFormatoAntigo = /^[A-Z]{3}\d{4}$/.test(placaFormatada);
         const isFormatoNovo = /^[A-Z]{3}\d[A-Z]\d{2}$/.test(placaFormatada);
         
-        // Aplica hífen após os 3 primeiros caracteres para o formato antigo
         if (placaFormatada.length >= 3 && (isFormatoAntigo || (!isFormatoNovo && placaFormatada.length <= 7))) {
           placaFormatada = placaFormatada.substring(0, 3) + '-' + placaFormatada.substring(3);
         }
@@ -48,21 +41,17 @@ export default function CadastroOnibus() {
   };
 
   const validateForm = () => {
-    let hasError = false;
-    let newErrors = { plate: '', maxCapacity: '' };
-
     if (!form.plate.trim()) {
-      newErrors.plate = 'Placa é obrigatória.';
-      hasError = true;
+      toast.error('Placa é obrigatória.', { autoClose: 3000, position: "top-center" });
+      return false;
     }
 
     if (!form.maxCapacity || isNaN(form.maxCapacity) || Number(form.maxCapacity) <= 0) {
-      newErrors.maxCapacity = 'Capacidade deve ser um número maior que zero.';
-      hasError = true;
+      toast.error('Capacidade deve ser um número maior que zero.', { autoClose: 3000, position: "top-center" });
+      return false;
     }
 
-    setErrors(newErrors);
-    return !hasError;
+    return true;
   };
 
   const handleSubmit = async (e) => {
@@ -71,7 +60,6 @@ export default function CadastroOnibus() {
     if (!validateForm()) return;
 
     try {
-      // Remove o hífen da placa antes de enviar para o backend
       const placaSemHifen = form.plate.replace(/-/g, '');
       
       await api.post('/buses', {
@@ -79,10 +67,11 @@ export default function CadastroOnibus() {
         maxCapacity: Number(form.maxCapacity),
         status: form.status,
       });
-      alert('Ônibus cadastrado com sucesso!');
+
+      toast.success('Ônibus cadastrado com sucesso!', { autoClose: 3000, position: "top-center" });
       navigate('/dashboard-admin'); 
     } catch (err) {
-      alert('Erro ao cadastrar ônibus');
+      toast.error('Está placa ja existe. Por favor altere.', { autoClose: 3000, position: "top-center" });
       console.error('Erro na requisição:', err.response?.data || err.message);
     }
   };
@@ -99,8 +88,7 @@ export default function CadastroOnibus() {
           onChange={handleChange}
           required
         />
-        {errors.plate && <p style={{ color: '#CCC', fontSize: '12px' }}>{errors.plate}</p>}
-
+        
         <input
           className="InputCadastro"
           name="maxCapacity"
@@ -110,8 +98,7 @@ export default function CadastroOnibus() {
           onChange={handleChange}
           required
         />
-        {errors.maxCapacity && <p style={{ color: '#CCC', fontSize: '12px' }}>{errors.maxCapacity}</p>}
-
+        
         <select
           className="SelectCadastro"
           name="status"
@@ -128,6 +115,7 @@ export default function CadastroOnibus() {
 
         <button className="ButtonCadastro" type="submit">Cadastrar</button>
       </form>
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </div>
   );
 }

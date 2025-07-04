@@ -4,6 +4,9 @@ import api from '../services/Api';
 import { statusMotorista } from '../utils/statusLabels';
 import '../styles/CadastroEvento.css';
 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function CadastroEvento() {
     const navigate = useNavigate();
 
@@ -40,7 +43,7 @@ export default function CadastroEvento() {
                 setOnibusDisponiveis(onibusRes.data);
             } catch (err) {
                 console.error('Erro ao buscar dados:', err);
-                alert('Erro ao carregar dados do backend');
+                toast.error('Erro ao carregar dados do backend', { autoClose: 3000, position: 'top-center' });
             }
         }
         fetchDados();
@@ -49,41 +52,25 @@ export default function CadastroEvento() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         
-        // Tratamento especial para o campo de telefone
         if (name === 'telefoneResponsavel') {
-            // Implementação manual da máscara de telefone
-            let telefoneFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-            
+            let telefoneFormatado = value.replace(/\D/g, '');
             if (telefoneFormatado.length > 0) {
-                // Formata o número conforme digitação
                 telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
                 telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-                
-                // Limita o tamanho
                 if (telefoneFormatado.length > 15) {
                     telefoneFormatado = telefoneFormatado.substring(0, 15);
                 }
             }
-            
             setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
-        } 
-        // Tratamento especial para o campo de valor
-        else if (name === 'valorEvento') {
-            // Implementação manual da máscara de valor monetário
-            let valorFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-            
-            // Converte para formato de centavos
+        } else if (name === 'valorEvento') {
+            let valorFormatado = value.replace(/\D/g, '');
             const valorEmCentavos = parseInt(valorFormatado, 10) || 0;
-            
-            // Formata como valor monetário (R$ 0.000,00)
             valorFormatado = (valorEmCentavos / 100).toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
-            
             setForm(prev => ({ ...prev, [name]: valorFormatado }));
         } else {
-            // Para os demais campos, mantém o comportamento original
             setForm(prev => ({ ...prev, [name]: value }));
         }
     };
@@ -99,12 +86,12 @@ export default function CadastroEvento() {
         const dataRetorno = new Date(form.dataRetorno + "T00:00");
 
         if (dataEvento < today.setHours(0, 0, 0, 0)) {
-            alert(`A data do evento não pode ser anterior à data atual.`);
+            toast.error('A data do evento não pode ser anterior à data atual.', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
         if (dataRetorno < dataEvento) {
-            alert(`A data de retorno não pode ser anterior à data do evento.`);
+            toast.error('A data de retorno não pode ser anterior à data do evento.', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
@@ -122,30 +109,24 @@ export default function CadastroEvento() {
             onibusSelecionado &&
             Number(form.quantidadePassageiros) > Number(onibusSelecionado.maxCapacity)
         ) {
-            alert(
-                `A quantidade de passageiros (${form.quantidadePassageiros}) excede a capacidade do ônibus selecionado (${onibusSelecionado.maxCapacity} lugares).`
-            );
+            toast.error(`A quantidade de passageiros (${form.quantidadePassageiros}) excede a capacidade do ônibus selecionado (${onibusSelecionado.maxCapacity} lugares).`, { autoClose: 4000, position: 'top-center' });
             return;
         }
 
         if (!form.funcionarioId) {
-            alert('Selecione o funcionário responsável pelo evento.');
+            toast.error('Selecione o funcionário responsável pelo evento.', { autoClose: 3000, position: 'top-center' });
             return;
         }
 
         if (erroEncontrado) return;
 
         try {
-            // Garantir que todos os campos numéricos sejam convertidos corretamente
-            // e que o telefone seja enviado apenas com números
             const telefoneSemMascara = form.telefoneResponsavel.replace(/\D/g, '');
-            
-            // Converter o valor formatado para número
             const valorSemFormatacao = form.valorEvento.replace(/\D/g, '') / 100;
-            
+
             const payload = {
                 responsibleName: form.nomeResponsavel,
-                contactPhone: telefoneSemMascara, 
+                contactPhone: telefoneSemMascara,
                 eventLocation: form.localEvento,
                 eventDepartureDate: form.dataEvento,
                 eventReturnDate: form.dataRetorno,
@@ -153,27 +134,25 @@ export default function CadastroEvento() {
                 returnTime: form.horarioVolta,
                 numberOfPassengers: form.quantidadePassageiros ? Number(form.quantidadePassageiros) : 0,
                 employeeId: form.funcionarioId ? Number(form.funcionarioId) : null,
-                statusPayment: 'Confirmado', 
+                statusPayment: 'Confirmado',
                 eventValue: valorSemFormatacao || 0,
                 driverId: form.motoristaId ? Number(form.motoristaId) : null,
                 busId: form.onibusIds ? Number(form.onibusIds) : null,
             };
-            
+
             console.log('Enviando payload para cadastro:', payload);
             console.log('Telefone original:', form.telefoneResponsavel);
             console.log('Telefone sem máscara:', telefoneSemMascara);
-            
+
             const response = await api.post('/events', payload);
             console.log('Resposta do servidor:', response.data);
-            alert('Evento cadastrado com sucesso!');
+            toast.success('Evento cadastrado com sucesso!', { autoClose: 3000, position: 'top-center' });
             navigate('/dashboard');
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.response?.data || error.message || 'Erro desconhecido';
             console.error('Erro ao cadastrar evento:', errorMessage);
             console.error('Detalhes completos do erro:', error);
-            
-            // Mostrar mensagem de erro mais detalhada para o usuário
-            alert(`Erro ao cadastrar evento: ${errorMessage}`);
+            toast.error(`Erro ao cadastrar evento: ${errorMessage}`, { autoClose: 4000, position: 'top-center' });
         }
     };
 
@@ -380,6 +359,7 @@ export default function CadastroEvento() {
                     </button>
                 </div>
             </form>
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </div>
     );
 }

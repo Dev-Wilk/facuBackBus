@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/CadastroUsuario.css';
 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function CadastroUsuario() {
     const navigate = useNavigate();
 
@@ -11,10 +14,6 @@ export default function CadastroUsuario() {
         login: '',
         password: '',
         userType: 'ATENDENTE',
-    });
-
-    const [errors, setErrors] = useState({
-        password: '',
     });
 
     const handleChange = (e) => {
@@ -36,13 +35,13 @@ export default function CadastroUsuario() {
 
         const passwordError = validatePassword(form.password);
         if (passwordError) {
-            setErrors({ password: passwordError });
+            toast.error(passwordError, { autoClose: 3000, position: "top-center" });
             return;
         }
 
         try {
             await api.post('/users', form);
-            alert('Usuário cadastrado com sucesso!');
+            toast.success('Usuário cadastrado com sucesso!', { autoClose: 3000, position: "top-center" });
 
             if (form.userType === 'GERENTE') {
                 navigate('/dashboard-admin');
@@ -50,7 +49,7 @@ export default function CadastroUsuario() {
                 navigate('/dashboard');
             }
         } catch (err) {
-            alert('Erro ao cadastrar usuário');
+            toast.error('Erro ao cadastrar usuário', { autoClose: 3000, position: "top-center" });
             console.error('Erro na requisição:', err);
         }
     };
@@ -98,12 +97,8 @@ export default function CadastroUsuario() {
                 <button className="ButtonCadastro" type="submit">
                     Cadastrar
                 </button>
-                {errors.password && (
-                    <p style={{ marginTop: '1rem', color: '#CCC', fontSize: '12px' }}>
-                        {errors.password}
-                    </p>
-                )}
             </form>
+            <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
         </div>
     );
 }

@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/Api';
 import '../styles/CadastroUsuario.css';
 
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 export default function CadastroMotorista() {
   const navigate = useNavigate();
 
@@ -13,26 +16,20 @@ export default function CadastroMotorista() {
     status: 'AVAILABLE',
   });
 
-  const [telefoneErro, setTelefoneErro] = useState('');
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === 'contact') {
-      // Implementação manual da máscara de telefone
-      let telefoneFormatado = value.replace(/\D/g, ''); // Remove caracteres não numéricos
-      
+      let telefoneFormatado = value.replace(/\D/g, '');
+
       if (telefoneFormatado.length > 0) {
-        // Formata o número conforme digitação
         telefoneFormatado = telefoneFormatado.replace(/^(\d{2})(\d)/g, '($1) $2');
         telefoneFormatado = telefoneFormatado.replace(/(\d{5})(\d)/, '$1-$2');
-        
-        // Limita o tamanho
         if (telefoneFormatado.length > 15) {
           telefoneFormatado = telefoneFormatado.substring(0, 15);
         }
       }
-      
+
       setForm(prev => ({ ...prev, [name]: telefoneFormatado }));
     } else {
       setForm(prev => ({ ...prev, [name]: value }));
@@ -42,26 +39,23 @@ export default function CadastroMotorista() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setTelefoneErro('');
-
     const telefoneSomenteNumeros = form.contact.replace(/\D/g, '');
-    if (telefoneSomenteNumeros.length !== 11 && telefoneSomenteNumeros.length !== 10) {
-      setTelefoneErro('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).');
+    if (telefoneSomenteNumeros.length !== 10 && telefoneSomenteNumeros.length !== 11) {
+      toast.error('O telefone deve conter 10 ou 11 dígitos (incluindo DDD).', { autoClose: 3000, position: 'top-center' });
       return;
     }
 
     try {
-      // Preparar o payload com o telefone sem máscara
       const payload = {
         ...form,
-        contact: telefoneSomenteNumeros
+        contact: telefoneSomenteNumeros,
       };
-      
+
       await api.post('/drivers', payload);
-      alert('Motorista cadastrado com sucesso!');
+      toast.success('Motorista cadastrado com sucesso!', { autoClose: 3000, position: 'top-center' });
       navigate('/dashboard-admin');
     } catch (err) {
-      alert('Erro ao cadastrar motorista');
+      toast.error('Erro ao cadastrar motorista', { autoClose: 3000, position: 'top-center' });
       if (err.response) {
         console.error('Status:', err.response.status);
         console.error('Data:', err.response.data);
@@ -94,8 +88,6 @@ export default function CadastroMotorista() {
           maxLength={15}
           inputMode="numeric"
         />
-        {telefoneErro && <span className="erro">{telefoneErro}</span>}
-
 
         <input
           className="InputCadastro"
@@ -122,12 +114,8 @@ export default function CadastroMotorista() {
         <button className="ButtonCadastro" type="submit">
           Cadastrar
         </button>
-        {telefoneErro && (
-          <span style={{ color: '#CCC', fontSize: '0.9rem', marginTop: '2rem' }}>
-            {telefoneErro}
-          </span>
-        )}
       </form>
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
     </div>
   );
 }
