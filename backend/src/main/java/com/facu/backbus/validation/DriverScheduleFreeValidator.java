@@ -33,8 +33,22 @@ public class DriverScheduleFreeValidator implements ConstraintValidator<DriverSc
      */
     @Override
     public boolean isValid(EventDTO eventDTO, ConstraintValidatorContext context) {
-        if (eventDTO.getDriverId() == null || eventDTO.getEventDepartureDate() == null || eventDTO.getEventReturnDate() == null) {
+        if (eventDTO.getDriverId() == null || eventDTO.getEventDepartureDate() == null || 
+            eventDTO.getEventReturnDate() == null || eventDTO.getDepartureTime() == null || 
+            eventDTO.getReturnTime() == null) {
             return true; // Deixa para outras anotações tratarem campos nulos
+        }
+
+        // Validação para eventos no mesmo dia
+        if (eventDTO.getEventDepartureDate().equals(eventDTO.getEventReturnDate())) {
+            if (eventDTO.getDepartureTime().isAfter(eventDTO.getReturnTime()) || 
+                eventDTO.getDepartureTime().equals(eventDTO.getReturnTime())) {
+                context.disableDefaultConstraintViolation();
+                context.buildConstraintViolationWithTemplate(
+                    "Para eventos no mesmo dia, o horário de partida deve ser anterior ao horário de retorno.")
+                    .addConstraintViolation();
+                return false;
+            }
         }
 
         List<Event> conflictingEvents;
