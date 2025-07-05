@@ -20,6 +20,13 @@ export default function DashBoard() {
                 </button>
                 
                 <button
+                    className={`ButtonAcaoAdministrativo ${abaAtiva === 'usuarios' ? 'ativo' : ''}`}
+                    onClick={() => setAbaAtiva('usuarios')}
+                >
+                    Usuários
+                </button>
+                
+                <button
                     className={`ButtonAcaoAdministrativo ${abaAtiva === 'motoristas' ? 'ativo' : ''}`}
                     onClick={() => setAbaAtiva('motoristas')}
                 >
@@ -34,6 +41,7 @@ export default function DashBoard() {
             </div>
 
             {abaAtiva === 'eventos' && <DashBoardEventos />}
+            {abaAtiva === 'usuarios' && <DashBoardUsuario />}
             {abaAtiva === 'motoristas' && <DashBoardMotorista />}
             {abaAtiva === 'onibus' && <DashBoardOnibus />}
         </div>
